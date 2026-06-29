@@ -1,0 +1,2007 @@
+Drop down menu
+
+
+
+
+          % Code that executes after component creation
+          function startupFcn(app)
+
+% Call the method to read Excel data
+        [dropdownOptions, columnExists] = app.readExcelData();
+
+          if columnExists
+               % Update the dropdown component's items
+               app.ModelDropDown.Items = dropdownOptions;
+          else
+               % Handle the case where the 'Model' column does not exist
+               disp('Column "Model" does not exist in the specified sheet.');
+          end
+    end
+
+function [dropdownOptions, columnExists] = readExcelData(app)
+% Define the path to your Excel file
+        excelFilePath = 'C:\Users\BlossomFernandez\GB AUTO GROUP PTY LIMITED\DVT - Document\Projects\Simulink &
+MATLAB\Projects\APP_Fuse\Fuse_GUI.xlsx';
+
+% Define the sheet name
+        sheetName = 'MachinesOnSite';
+
+% Read the header from the second row
+        headerData = readcell(excelFilePath, 'Sheet', sheetName, 'Range', 'A2:X2');
+
+% Read the actual data starting from the third row
+        data = readtable(excelFilePath, 'Sheet', sheetName, 'Range', 'A3:X1000'); % Adjust range as needed
+
+% Assign column names to the table
+        data.Properties.VariableNames = headerData;   % Assign the column names
+
+% Check if the 'Model' column exists
+        columnExists = ismember('Model', data.Properties.VariableNames);
+
+% to convert dropdownOptions to a cell array before it has been defined. To ensure that the readExcelData function works
+correctly, you need to handle the case where the 'Model' column exists and where it does not, and you must define
+dropdownOptions before trying to convert it.
+        if columnExists
+            dropdownOptions = data.Model; % Access the 'Model' column
+
+% Remove empty entries
+             dropdownOptions = dropdownOptions(~cellfun('isempty', dropdownOptions));
+% Convert to cell array if needed
+             if ~iscell(dropdownOptions)
+                 dropdownOptions = cellstr(dropdownOptions);
+             end
+        else
+             dropdownOptions = {};
+        end
+Indexing machine manufacturer
+
+
+
+
+% Value changed function: ModelDropDown
+        function ModelDropDownValueChanged(app, event)
+
+%Model name
+selectedModel = app.ModelDropDown.Value;
+
+
+%Model column data
+
+excelFilePath = 'C:\Users\BlossomFernandez\GB AUTO GROUP PTY LIMITED\DVT - Document\Projects\Simulink &
+MATLAB\Projects\APP_Fuse\Fuse_GUI.xlsx';
+
+% Define the sheet name
+        sheetName = 'MachinesOnSite';
+
+% Read the header from the second row
+        headerData = readcell(excelFilePath, 'Sheet', sheetName, 'Range', 'A2:X2');
+% Read the actual data starting from the third row
+        data = readtable(excelFilePath, 'Sheet', sheetName, 'Range', 'A2:X1000'); % Adjust range as needed
+
+% Assign column names to the table
+        data.Properties.VariableNames = headerData;    % Assign the column names
+
+% Access the 'Model' column
+modelColumn = data.Model;
+
+% Perform index matching
+rowIndex = find(ismember(modelColumn, selectedModel), 1);
+
+if ~isempty(rowIndex)
+    % Specify the column you want to extract the value from
+    columnName = 'Manufacturer'; % Replace with your actual column name
+
+      if ismember(columnName, headerData)
+
+         % Extract the value from the specified column and row
+         selectedValue = data{rowIndex, columnName};
+
+         % Ensure selectedModel and selectedValue are character arrays (strings)
+
+         if ~ischar(selectedValue)
+             selectedValue = char(selectedValue);
+         end
+
+          % Now populate the table with the selectedModel and selectedValue
+          app.UITable.Data = {columnName, selectedValue}; % Populate the table
+      else
+          disp(['Column ', columnName, ' does not exist in the data.']);
+      end
+else
+      % Handle case where no match is found
+      disp('No matching data found.');
+end
+          end
+    end
+
+
+
+
+How to display multiple rows
+
+
+
+
+%% TO DISPLAY MANUFACTURER AND CRANKING CURRENT %%
+
+% Get selected model from the dropdown
+selectedModel = app.ModelDropDown.Value;
+
+% Excel file path and sheet name
+excelFilePath = 'C:\Users\BlossomFernandez\GB AUTO GROUP PTY LIMITED\DVT - Document\Projects\Simulink &
+MATLAB\Projects\APP_Fuse\Fuse_GUI.xlsx';
+sheetName = 'MachinesOnSite';
+% Read header and data from Excel
+headerData = readcell(excelFilePath, 'Sheet', sheetName, 'Range', 'A2:X2');
+data = readtable(excelFilePath, 'Sheet', sheetName, 'Range', 'A3:X1000'); % Starting from row 3
+
+% Clean headers by removing line breaks and extra whitespace
+cleanedHeaderData = regexprep(headerData, '[\n\r]+', ''); % Remove line breaks
+cleanedHeaderData = strtrim(cleanedHeaderData); % Trim leading/trailing spaces
+
+% Assign cleaned column names to the table
+data.Properties.VariableNames = cleanedHeaderData;
+
+% Check if 'Model', 'Manufacturer', and 'Starter Motor Peak Current (A)' columns exist
+if ismember('Model', cleanedHeaderData) && ismember('Manufacturer', cleanedHeaderData) && ismember('Starter Motor Peak Current
+(A)', cleanedHeaderData)
+
+    % Access the 'Model' column
+    modelColumn = data.Model;
+
+    % Perform index matching to find the selected model
+    rowIndex = find(ismember(modelColumn, selectedModel), 1);
+
+    if ~isempty(rowIndex)
+        % Extract values for Manufacturer and Cranking Current
+        ManufacturerColumnName = 'Manufacturer';
+        CrankingCurrentColumnName = 'Starter Motor Peak Current (A)';
+        selectedValue1 = data{rowIndex, ManufacturerColumnName};
+        selectedValue2 = data{rowIndex, CrankingCurrentColumnName};
+
+       % Convert values to character arrays if necessary
+       if isnumeric(selectedValue1)
+           selectedValue1 = num2str(selectedValue1);
+       end
+       if isnumeric(selectedValue2)
+           selectedValue2 = num2str(selectedValue2);
+       end
+
+       % Ensure values are valid characters for UITable
+         selectedValue1 = char(selectedValue1);
+         selectedValue2 = char(selectedValue2);
+
+         % Prepare table data for display
+         tableData = {
+             'Manufacturer', selectedValue1;
+             'Starter Motor Peak Current (A)', selectedValue2
+         };
+
+         % Set the UITable Data
+         app.UITable.Data = tableData;
+
+      else
+          disp('No matching data found for the selected model.');
+      end
+else
+      disp('One or more required columns (Model, Manufacturer, Starter Motor Peak Current (A)) do not exist.');
+end
+Displaying after logical comparison
+
+
+
+
+%% TO DISPLAY MANUFACTURER AND CRANKING CURRENT %%
+
+% Get selected model from the dropdown
+selectedModel = app.ModelDropDown.Value;
+
+% Excel file path and sheet name
+excelFilePath = 'C:\Users\BlossomFernandez\GB AUTO GROUP PTY LIMITED\DVT - Document\Projects\Simulink &
+MATLAB\Projects\APP_Fuse\Fuse_GUI.xlsx';
+sheetName = 'MachinesOnSite';
+
+% Read header and data from Excel
+headerData = readcell(excelFilePath, 'Sheet', sheetName, 'Range', 'A2:X2');
+data = readtable(excelFilePath, 'Sheet', sheetName, 'Range', 'A3:X1000'); % Starting from row 3
+
+% Clean headers by removing line breaks and extra whitespace
+cleanedHeaderData = regexprep(headerData, '[\n\r]+', ''); % Remove line breaks
+cleanedHeaderData = strtrim(cleanedHeaderData); % Trim leading/trailing spaces
+% Assign cleaned column names to the table
+data.Properties.VariableNames = cleanedHeaderData;
+
+% Check if 'Model', 'Manufacturer', and 'Starter Motor Peak Current (A)' columns exist
+if ismember('Model', cleanedHeaderData) && ismember('Manufacturer', cleanedHeaderData) && ismember('Starter Motor Peak Current
+(A)', cleanedHeaderData)
+
+    % Access the 'Model' column
+    modelColumn = data.Model;
+
+    % Perform index matching to find the selected model
+    rowIndex = find(ismember(modelColumn, selectedModel), 1);
+
+    if ~isempty(rowIndex)
+        % Extract values for Manufacturer and Cranking Current
+        ManufacturerColumnName = 'Manufacturer';
+        CrankingCurrentColumnName = 'Starter Motor Peak Current (A)';
+
+       % Extract values for 'Manufacturer' and 'Starter Motor Peak Current (A)'
+       selectedValue1 = data{rowIndex, ManufacturerColumnName}; % Manufacturer
+       selectedValue2 = data{rowIndex, CrankingCurrentColumnName}; % Cranking current
+
+       % Check if selected values are empty or 'TBC' and set to 'Data Unavailable' if true
+       if isempty(selectedValue1) || strcmp(selectedValue1, 'TBC')
+           selectedValue1 = 'Data Unavailable';
+       end
+
+       if isempty(selectedValue2) || strcmp(selectedValue2, 'TBC')
+           selectedValue2 = 'Data Unavailable';
+       end
+
+       % Check if cranking current is less than 1000A or invalid
+       if strcmp(selectedValue2, 'Data Unavailable')
+            selectedValue3 = 'Data Unavailable';
+       elseif str2double(selectedValue2) <= 1000
+            selectedValue3 = 'YES';
+       else
+               selectedValue3 = 'NO';
+         end
+
+         % Convert values to character arrays if necessary
+         if isnumeric(selectedValue1)
+             selectedValue1 = num2str(selectedValue1);
+         end
+         if isnumeric(selectedValue2)
+             selectedValue2 = num2str(selectedValue2);
+         end
+         if isnumeric(selectedValue3)
+             selectedValue3 = num2str(selectedValue3);
+         end
+
+         % Ensure values are valid characters for UITable
+         selectedValue1 = char(selectedValue1);
+         selectedValue2 = char(selectedValue2);
+         selectedValue3 = char(selectedValue3);
+
+         % Prepare table data for display
+         tableData = {
+             'Manufacturer', selectedValue1;
+             %'Starter Motor Peak Current (A)', selectedValue2;
+             'Is the cranking current less than the max (1000A) value?', selectedValue3
+         };
+
+         % Set the UITable Data
+         app.UITable.Data = tableData;
+
+      else
+          disp('No matching data found for the selected model.');
+      end
+else
+      disp('One or more required columns (Model, Manufacturer, Starter Motor Peak Current (A)) do not exist.');
+end
+Simplified excel representation and logical results
+
+
+
+
+%Model name
+selectedModel = app.ModelDropDown.Value;
+
+
+%Model column data
+
+excelFilePath = 'C:\Users\BlossomFernandez\GB AUTO GROUP PTY LIMITED\DVT - Document\Projects\Simulink &
+MATLAB\Projects\APP_Fuse\Fuse_GUI.xlsx';
+
+% Define the sheet name
+        sheetName = 'MachinesOnSite';
+
+% Read the header from the second row
+        headerDataMachinesOnSite = readcell(excelFilePath, 'Sheet', sheetName, 'Range', 'A2:X2');
+
+% Read the actual data starting from the third row
+        dataMachinesOnSite = readtable(excelFilePath, 'Sheet', sheetName, 'Range', 'A2:X1000'); % Adjust range as needed
+
+% Clean headers by removing line breaks and extra whitespace
+cleanedHeaderDataMachinesOnSite = regexprep(headerDataMachinesOnSite, '[\n\r]+', ''); % Remove line breaks
+cleanedHeaderDataMachinesOnSite = strtrim(cleanedHeaderDataMachinesOnSite); % Trim leading/trailing spaces
+
+disp(cleanedHeaderDataMachinesOnSite);
+% Assign cleaned column names to the table
+dataMachinesOnSite.Properties.VariableNames = cleanedHeaderDataMachinesOnSite;
+
+
+% Access the 'Model' column
+modelColumn = dataMachinesOnSite.Model;
+
+% Perform index matching to find the selected model
+    rowIndexMachinesOnSite = find(ismember(modelColumn, selectedModel), 1);
+
+    if ~isempty(rowIndexMachinesOnSite)
+
+% Find Parameter columns
+       CrankingCurrentColumnName = 'Starter Motor Peak Current (A)';
+       CrankingTimeColumnName    = 'Cranking time (s)';
+       CableSizeColumnName       = 'Cable Size(mm2)';
+
+
+%Extract Value in the respective column
+       CrankingCurrentValue = dataMachinesOnSite{rowIndexMachinesOnSite, CrankingCurrentColumnName}; % Cranking currentat
+1000A
+       CrankingTimeValue    = dataMachinesOnSite{rowIndexMachinesOnSite, CrankingTimeColumnName}; %CrankingTime
+       CableSizeValue       = dataMachinesOnSite{rowIndexMachinesOnSite,CableSizeColumnName}; %CableSize
+
+%Formula for calcualting Peak/short circuit current carrying capability (A) (time <= 5 s)
+
+if isempty(CrankingCurrentValue) || strcmp(CrankingCurrentValue, 'TBC')|| strcmp(CrankingCurrentValue, '#N/A') ||
+strcmp(CableSizeValue, 'TBC')|| strcmp(CableSizeValue, '#N/A') ||strcmp(CrankingTimeValue, 'TBC')|| strcmp(CrankingTimeValue,
+'#N/A')
+         CablePeakCurrentValue = 'Data Unavailable';
+else
+         CablePeakCurrentValue =   round((str2double(CrankingCurrentValue) * str2double(CableSizeValue)) /
+sqrt(str2double(CrankingTimeValue)), 0);
+end
+
+%YES /NO / DATA UNAVAILABLE
+
+%Can the cable handle the in-rush current demand?
+       if strcmp(CablePeakCurrentValue, 'Data Unavailable')
+             CablePeakYESorNO = 'Data Unavailable';
+                    elseif str2double(CrankingCurrentValue) <= CablePeakCurrentValue
+             CablePeakYESorNO = 'YES';
+        else
+             CablePeakYESorNO = 'NO';
+       end
+
+
+tableData = {
+                  'Can the cable handle the in-rush current demand? ',CablePeakYESorNO ;
+            };
+
+            % Set the UITable Data
+            app.UITable.Data = tableData;
+      end
+Code without fuse matching
+
+
+
+
+%% Model name
+
+selectedModel = app.ModelDropDown.Value;
+
+
+
+%% Model column data
+
+excelFilePath = 'C:\Users\BlossomFernandez\GB AUTO GROUP PTY LIMITED\DVT - Document\Projects\Simulink &
+MATLAB\Projects\APP_Fuse\Fuse_GUI.xlsx';
+%% Define the sheet name
+
+% MachineOnSite Sheet
+
+sheetNameMachinesOnSite = 'MachinesOnSite';
+
+% Fuse Library Sheet
+
+sheetNameFuseLibrary = 'Fuse_Library';
+
+
+
+%% Read the header from the second row
+
+% MachineOnSite Sheet
+
+headerDataMachinesOnSite = readcell(excelFilePath, 'Sheet', sheetNameMachinesOnSite, 'Range', 'A2:X2');
+
+% Fuse Library Sheet
+
+headerDataFuseLibrary = readcell(excelFilePath, 'Sheet', sheetNameFuseLibrary, 'Range', 'A1:K1');
+
+
+
+%% Read the actual data starting from the third row
+
+% MachineOnSite Sheet
+
+dataMachinesOnSite = readtable(excelFilePath, 'Sheet', sheetNameMachinesOnSite, 'Range', 'A3:X1000'); % Adjust range as needed
+
+% Fuse Library Sheet
+
+dataFuseLibrary = readtable(excelFilePath, 'Sheet', sheetNameFuseLibrary, 'Range', 'A2:K20'); % Adjust range as needed
+
+
+
+%% Clean headers by removing line breaks and extra whitespace
+
+% MachineOnSite Sheet
+cleanedHeaderDataMachinesOnSite = regexprep(headerDataMachinesOnSite, '[\n\r]+', ''); % Remove line breaks
+
+cleanedHeaderDataMachinesOnSite = strtrim(cleanedHeaderDataMachinesOnSite); % Trim leading/trailing spaces
+
+% Fuse Library Sheet
+
+cleanedHeaderDataFuseLibrary = regexprep(headerDataFuseLibrary, '[\n\r]+', ''); % Remove line breaks
+
+cleanedHeaderDataFuseLibrary = strtrim(cleanedHeaderDataFuseLibrary); % Trim leading/trailing spaces
+
+
+
+%% Assign cleaned column names to the table
+
+% MachineOnSite Sheet
+
+dataMachinesOnSite.Properties.VariableNames = cleanedHeaderDataMachinesOnSite;
+
+% Fuse Library Sheet
+
+dataFuseLibrary.Properties.VariableNames = cleanedHeaderDataFuseLibrary;
+
+
+
+%% Access the Column
+
+% MachineOnSite Sheet
+
+modelColumn = dataMachinesOnSite.Model;
+
+
+
+%% Perform index matching to find the selected model
+
+rowIndexMachinesOnSite = find(ismember(modelColumn, selectedModel), 1);
+
+
+
+if ~isempty(rowIndexMachinesOnSite)
+ %% Assign Column Names from data table
+
+ CrankingCurrentColumnName             = 'Starter Motor Peak Current (A)';
+
+ CrankingTimeColumnName               = 'Cranking time (s)';
+
+ CableSizeColumnName               = 'Cable Size(mm2)';
+
+ AlternatorContinuousCurrentColumnName = 'Alternator Continuous Current (A)';
+
+ CableContinuousCurrentColumnName            = 'Continuous Current (A)';
+
+
+
+ %% Assign Data
+
+ FusingSafetyCurrentFactor = 125/100;
+
+
+
+ %% Extract Value in the respective column
+
+ CrankingCurrentValue         = dataMachinesOnSite{rowIndexMachinesOnSite, CrankingCurrentColumnName}; % Cranking current at 1000A
+
+ CrankingTimeValue           = dataMachinesOnSite{rowIndexMachinesOnSite, CrankingTimeColumnName}; % Cranking Time
+
+ CableSizeValue           = dataMachinesOnSite{rowIndexMachinesOnSite, CableSizeColumnName}; % Cable Size
+
+ AlternatorContinuousCurrentValue = dataMachinesOnSite{rowIndexMachinesOnSite, AlternatorContinuousCurrentColumnName }; % Alternator
+Continuous Current
+
+ CableContinuousCurrentValue        = dataMachinesOnSite{rowIndexMachinesOnSite, CableContinuousCurrentColumnName }; % Cable
+Continuous Current
+
+
+
+ % Calculating Peak/short circuit current carrying capability (A) (time <= 5 s)
+
+ if isnan(str2double(CrankingCurrentValue)) || isnan(str2double(CableSizeValue)) || isnan(str2double(CrankingTimeValue))
+ CablePeakCurrentValue = 'Data Unavailable';
+
+else
+
+ CablePeakCurrentValue = round((143 * str2double(CableSizeValue)) / sqrt(str2double(CrankingTimeValue)), 0); % K FACTOR FIX IT
+
+end
+
+
+
+% Ensure CrankingCurrentValue and CablePeakCurrentValue are numeric and extract from cells if needed
+
+if iscell(CrankingCurrentValue)
+
+ CrankingCurrentValue = CrankingCurrentValue{:}; % Extract the value from the cell
+
+end
+
+
+
+if iscell(CablePeakCurrentValue)
+
+ CablePeakCurrentValue = CablePeakCurrentValue{:}; % Extract the value from the cell
+
+end
+
+
+
+% YES / NO / DATA UNAVAILABLE / COMPARE VALUES
+
+% Can the cable handle the in-rush current demand?
+
+if isnan(CablePeakCurrentValue)
+
+ CablePeakLogic = 'Data Unavailable for Calculations';
+
+elseif CrankingCurrentValue <= CablePeakCurrentValue
+
+ CablePeakLogic = 'YES';
+else
+
+ CablePeakLogic = 'NO';
+
+end
+
+
+
+% Ensure values are numeric
+
+if iscell(AlternatorContinuousCurrentValue)
+
+ AlternatorContinuousCurrentValue = str2double(AlternatorContinuousCurrentValue{:});
+
+elseif ischar(AlternatorContinuousCurrentValue)
+
+ AlternatorContinuousCurrentValue = str2double(AlternatorContinuousCurrentValue);
+
+end
+
+
+
+if iscell(CableContinuousCurrentValue)
+
+ CableContinuousCurrentValue = str2double(CableContinuousCurrentValue{:});
+
+elseif ischar(CableContinuousCurrentValue)
+
+ CableContinuousCurrentValue = str2double(CableContinuousCurrentValue);
+
+end
+
+disp(['AlternatorContinuousCurrentValue: ', num2str(AlternatorContinuousCurrentValue)]);
+
+disp(['CableContinuousCurrentValue: ', num2str(CableContinuousCurrentValue)]);
+
+
+
+% Can the cable handle the continuous current demand?
+ if isnumeric(AlternatorContinuousCurrentValue) && isnumeric(CableContinuousCurrentValue)
+
+      if AlternatorContinuousCurrentValue <= CableContinuousCurrentValue
+
+       CableContinuousCurrentLogic = 'YES';
+
+      else
+
+       CableContinuousCurrentLogic = 'NO';
+
+      end
+
+ else
+
+      CableContinuousCurrentLogic = 'Data Unavailable for Calculations';
+
+ end
+
+
+
+ % Set UITable Data
+
+ tableData = {
+
+      'Can the cable handle the in-rush current demand?', CablePeakLogic;
+
+      'Can the cable handle the continuous current demand?', CableContinuousCurrentLogic;
+
+ };
+
+
+
+ app.UITable.Data = tableData;
+
+end
+Code with data types and colour
+
+
+
+
+% Value changed function: ModelDropDown
+        function ModelDropDownValueChanged(app, event)
+                                             %% TO DISPLAY MANUFACTURER AND CRANKING CURRENT %%
+ % Model name
+    selectedModel = app.ModelDropDown.Value;
+
+    %% Model column data
+    excelFilePath = 'C:\Users\BlossomFernandez\GB AUTO GROUP PTY LIMITED\DVT - Document\Projects\Simulink &
+MATLAB\Projects\APP_Fuse\Fuse_GUI.xlsx';
+
+    %% Define the sheet name
+    % MachineOnSite Sheet
+    sheetNameMachinesOnSite = 'MachinesOnSite';
+    % Fuse Library Sheet
+    sheetNameFuseLibrary = 'Fuse_Library';
+
+    %% Read the header from the second row
+    % MachineOnSite Sheet
+   headerDataMachinesOnSite = readcell(excelFilePath, 'Sheet', sheetNameMachinesOnSite, 'Range', 'A2:X2');
+   % Fuse Library Sheet
+   headerDataFuseLibrary = readcell(excelFilePath, 'Sheet', sheetNameFuseLibrary, 'Range', 'A1:K1');
+
+    %% Read the actual data starting from the third row
+    % MachineOnSite Sheet
+    dataMachinesOnSite = readtable(excelFilePath, 'Sheet', sheetNameMachinesOnSite, 'Range', 'A3:X1000'); % Adjust range as
+needed
+    % Fuse Library Sheet
+    dataFuseLibrary = readtable(excelFilePath, 'Sheet', sheetNameFuseLibrary, 'Range', 'A2:K20'); % Adjust range as needed
+
+   %% Clean headers by removing line breaks and extra whitespace
+   % MachineOnSite Sheet
+   cleanedHeaderDataMachinesOnSite = regexprep(headerDataMachinesOnSite, '[\n\r]+', ''); % Remove line breaks
+   cleanedHeaderDataMachinesOnSite = strtrim(cleanedHeaderDataMachinesOnSite); % Trim leading/trailing spaces
+   % Fuse Library Sheet
+   cleanedHeaderDataFuseLibrary = regexprep(headerDataFuseLibrary, '[\n\r]+', ''); % Remove line breaks
+   cleanedHeaderDataFuseLibrary = strtrim(cleanedHeaderDataFuseLibrary); % Trim leading/trailing spaces
+
+   %% Assign cleaned column names to the table
+   % MachineOnSite Sheet
+   dataMachinesOnSite.Properties.VariableNames = cleanedHeaderDataMachinesOnSite;
+   % Fuse Library Sheet
+   dataFuseLibrary.Properties.VariableNames = cleanedHeaderDataFuseLibrary;
+
+   %% Access the Column
+   % MachineOnSite Sheet
+   modelColumn = dataMachinesOnSite.Model;
+
+   %% Perform index matching to find the selected model
+   rowIndexMachinesOnSite = find(ismember(modelColumn, selectedModel), 1);
+
+   % Initialize selectedValue5
+   CrankingAmpsHighorLow = 'Data Unavailable'; % Default value
+
+   if ~isempty(rowIndexMachinesOnSite)
+       %% Assign Column Names from data table
+       StarterMotorCrankingCurrentColumnName = 'Starter Motor Peak Current (A)';
+       CrankingTimeColumnName                = 'Cranking time (s)';
+       CableSizeColumnName                   = 'Cable Size(mm2)';
+       AlternatorContinuousCurrentColumnName = 'Alternator Continuous Current (A)';
+       CableContinuousCurrentColumnName      = 'Continuous Current (A)';
+
+       %% Assign Data
+       FusingSafetyCurrentFactor = 125/100;
+
+        % Extract the values in the respective column
+        StarterMotorCrankingCurrentValue = dataMachinesOnSite{rowIndexMachinesOnSite, StarterMotorCrankingCurrentColumnName};
+% Cranking current at 1000A
+        CrankingTimeValue = dataMachinesOnSite{rowIndexMachinesOnSite, CrankingTimeColumnName}; % Cranking Time
+        CableSizeValue = dataMachinesOnSite{rowIndexMachinesOnSite, CableSizeColumnName}; % Cable Size
+        AlternatorContinuousCurrentValue = dataMachinesOnSite{rowIndexMachinesOnSite, AlternatorContinuousCurrentColumnName};
+% Alternator Continuous Current
+        CableContinuousCurrentValue = dataMachinesOnSite{rowIndexMachinesOnSite, CableContinuousCurrentColumnName}; % Cable
+Continuous Current
+
+       % Apply the function to convert values
+       StarterMotorCrankingCurrentValue = app.convertValue(StarterMotorCrankingCurrentValue);
+       CrankingTimeValue = app.convertValue(CrankingTimeValue);
+       CableSizeValue = app.convertValue(CableSizeValue);
+       AlternatorContinuousCurrentValue = app.convertValue(AlternatorContinuousCurrentValue);
+       CableContinuousCurrentValue = app.convertValue(CableContinuousCurrentValue);
+
+       % Debugging: Print the class of the converted value
+       disp(['Class of StarterMotorCrankingCurrentValue: ', class(StarterMotorCrankingCurrentValue)]);
+       disp(['StarterMotorCrankingCurrentValue: ', num2str(StarterMotorCrankingCurrentValue)]);
+
+       % Check if cranking current is 'Data Unavailable' or another string like 'TBC'
+       if ischar(StarterMotorCrankingCurrentValue) || isstring(StarterMotorCrankingCurrentValue)
+           % Handle cases where the value is 'Data Unavailable', 'TBC', etc.
+           if strcmp(StarterMotorCrankingCurrentValue, 'Data Unavailable') || strcmp(StarterMotorCrankingCurrentValue, 'TBC')
+               CrankingAmpsHighorLow = 'Data Unavailable';
+           end
+       elseif isnumeric(StarterMotorCrankingCurrentValue)
+
+            % If it's numeric, compare it
+             if StarterMotorCrankingCurrentValue <= 1000
+                  CrankingAmpsHighorLow = 'YES'; % Cranking current is <= 1000A
+             else
+                  CrankingAmpsHighorLow = 'NO, Cranking amps over the limit, replace the starter motor';   % Cranking current is
+greater than 1000A
+             end
+        else
+             % Handle unexpected data types
+             CrankingAmpsHighorLow = 'Invalid Data';
+        end
+    end
+
+    % Debugging: Print selectedValue5
+    disp(['Is cranking current <= 1000A: ', CrankingAmpsHighorLow]);
+
+    % Display converted values (use num2str for numeric values)
+    disp(['StarterMotorCrankingCurrentValue: ', num2str(StarterMotorCrankingCurrentValue)]);
+    disp(['CrankingTimeValue: ', num2str(CrankingTimeValue)]);
+    disp(['CableSizeValue: ', num2str(CableSizeValue)]);
+    disp(['AlternatorContinuousCurrentValue: ', num2str(AlternatorContinuousCurrentValue)]);
+    disp(['CableContinuousCurrentValue: ', num2str(CableContinuousCurrentValue)]);
+
+    %% Set UITable Data
+    tableData = {
+        % You can populate the table data here
+        'Is the Starter Motor Cranking amps within the limit', CrankingAmpsHighorLow;
+
+           };
+
+    app.UITable.Data = tableData;
+
+
+    % Define the color matrix to match the size of tableData
+    % For simplicity, assume the same color applies to all cells based on `selectedValue5`
+    colorMatrix = repmat({'white'}, size(tableData)); % Default to white
+
+    % Define colors based on selectedValue5
+    switch CrankingAmpsHighorLow
+          case 'Data Unavailable'
+              colorMatrix(:) = {'yellow'};
+          case 'YES'
+              colorMatrix(:) = {'green'};
+          case 'NO, Cranking amps over the limit, replace the starter motor'
+              colorMatrix(:) = {'red'};
+          case 'Invalid Data'
+              colorMatrix(:) = {'gray'};
+          otherwise
+              colorMatrix(:) = {'white'}; % Default color
+    end
+
+    % Update the UITable Data
+    app.UITable.Data = tableData;
+
+    % Apply colors to the UITable
+    app.UITable.BackgroundColor = colorMatrix;
+        end
+
+
+        % Function to check type and convert values
+function output = convertValue(~, val)
+    if iscell(val) % If it's a cell array
+        val = val{1}; % Extract the first element
+    end
+
+    % Handle different data types
+    if isnumeric(val)
+        output = val; % If numeric, leave it as is
+    elseif ischar(val) || isstring(val)
+        output = str2double(val); % Convert char or string to numeric if possible
+        if isnan(output)
+            output = string(val); % If conversion to numeric fails, convert to string
+        end
+    else
+        output = val; % If some other type, leave it unchanged (or handle as needed)
+    end
+          end
+    end
+
+
+
+
+Menu 1 done with colour
+
+
+
+
+% Value changed function: ModelDropDown
+
+   function ModelDropDownValueChanged(app, event)
+                   %% TO DISPLAY MANUFACTURER AND CRANKING CURRENT %%
+
+% Model name
+
+ selectedModel = app.ModelDropDown.Value;
+
+
+
+ %% Model column data
+
+ excelFilePath = 'C:\Users\BlossomFernandez\GB AUTO GROUP PTY LIMITED\DVT - Document\Projects\Simulink &
+MATLAB\Projects\APP_Fuse\Fuse_GUI.xlsx';
+
+
+
+ %% Define the sheet name
+
+ % MachineOnSite Sheet
+
+ sheetNameMachinesOnSite = 'MachinesOnSite';
+
+ % Fuse Library Sheet
+
+ sheetNameFuseLibrary = 'Fuse_Library';
+
+
+
+ %% Read the header from the second row
+
+ % MachineOnSite Sheet
+
+ headerDataMachinesOnSite = readcell(excelFilePath, 'Sheet', sheetNameMachinesOnSite, 'Range', 'A2:X2');
+
+ % Fuse Library Sheet
+
+ headerDataFuseLibrary = readcell(excelFilePath, 'Sheet', sheetNameFuseLibrary, 'Range', 'A1:K1');
+%% Read the actual data starting from the third row
+
+% MachineOnSite Sheet
+
+dataMachinesOnSite = readtable(excelFilePath, 'Sheet', sheetNameMachinesOnSite, 'Range', 'A3:X1000'); % Adjust range as needed
+
+% Fuse Library Sheet
+
+dataFuseLibrary = readtable(excelFilePath, 'Sheet', sheetNameFuseLibrary, 'Range', 'A2:K20'); % Adjust range as needed
+
+
+
+%% Clean headers by removing line breaks and extra whitespace
+
+% MachineOnSite Sheet
+
+cleanedHeaderDataMachinesOnSite = regexprep(headerDataMachinesOnSite, '[\n\r]+', ''); % Remove line breaks
+
+cleanedHeaderDataMachinesOnSite = strtrim(cleanedHeaderDataMachinesOnSite); % Trim leading/trailing spaces
+
+% Fuse Library Sheet
+
+cleanedHeaderDataFuseLibrary = regexprep(headerDataFuseLibrary, '[\n\r]+', ''); % Remove line breaks
+
+cleanedHeaderDataFuseLibrary = strtrim(cleanedHeaderDataFuseLibrary); % Trim leading/trailing spaces
+
+
+
+%% Assign cleaned column names to the table
+
+% MachineOnSite Sheet
+
+dataMachinesOnSite.Properties.VariableNames = cleanedHeaderDataMachinesOnSite;
+
+% Fuse Library Sheet
+
+dataFuseLibrary.Properties.VariableNames = cleanedHeaderDataFuseLibrary;
+%% Access the Column
+
+% MachineOnSite Sheet
+
+modelColumn = dataMachinesOnSite.Model;
+
+
+
+% Fuse Library Sheet
+
+FuseRatingColumn = dataFuseLibrary.('Current rating (A)') ;
+
+ThermalEnergyColumn = dataFuseLibrary.('I2t (A2s)');
+
+GBPartNumberColumn = dataFuseLibrary.('GB PART #');
+
+
+
+
+%% Perform index matching to find the selected model
+
+rowIndexMachinesOnSite = find(ismember(modelColumn, selectedModel), 1);
+
+
+
+
+%% Initialize Values
+
+CrankingAmpsHighorLow = 'Data Unavailable'; % Default value
+
+
+
+if ~isempty(rowIndexMachinesOnSite)
+
+ %% Assign Column Names from data table
+
+ StarterMotorCrankingCurrentColumnName = 'Starter Motor Peak Current (A)';
+   CrankingTimeColumnName            = 'Cranking time (s)';
+
+   CableSizeColumnName             = 'Cable Size(mm2)';
+
+   AlternatorContinuousCurrentColumnName = 'Alternator Continuous Current (A)';
+
+   CableContinuousCurrentColumnName         = 'Continuous Current (A)';
+
+
+
+
+   %% Assign Data
+
+   FusingSafetyCurrentFactor = 125/100;
+
+   KFactorCopper       = 143;
+
+
+
+   %% Extract the values in the respective column
+
+    StarterMotorCrankingCurrentValue = dataMachinesOnSite{rowIndexMachinesOnSite, StarterMotorCrankingCurrentColumnName}; % Cranking
+current at 1000A
+
+   CrankingTimeValue         = dataMachinesOnSite{rowIndexMachinesOnSite, CrankingTimeColumnName}; % Cranking Time
+
+   CableSizeValue         = dataMachinesOnSite{rowIndexMachinesOnSite, CableSizeColumnName}; % Cable Size
+
+   AlternatorContinuousCurrentValue = dataMachinesOnSite{rowIndexMachinesOnSite, AlternatorContinuousCurrentColumnName}; % Alternator
+Continuous Current
+
+   CableContinuousCurrentValue      = dataMachinesOnSite{rowIndexMachinesOnSite, CableContinuousCurrentColumnName}; % Cable
+Continuous Current
+%% Apply the function to convert values
+
+StarterMotorCrankingCurrentValue = app.convertValue(StarterMotorCrankingCurrentValue);
+
+CrankingTimeValue          = app.convertValue(CrankingTimeValue);
+
+CableSizeValue           = app.convertValue(CableSizeValue);
+
+AlternatorContinuousCurrentValue = app.convertValue(AlternatorContinuousCurrentValue);
+
+CableContinuousCurrentValue       = app.convertValue(CableContinuousCurrentValue);
+
+GBPartNumberColumn             = app.convertValue(GBPartNumberColumn);
+
+
+
+%% Debugging: Print the class of the converted value
+
+% disp(['Class of StarterMotorCrankingCurrentValue: ', class(StarterMotorCrankingCurrentValue)]);
+
+% disp(['Class of CrankingTimeValue: ', class(CrankingTimeValue)]);
+
+% disp(['Class of CableSizeValue: ', class(CableSizeValue)]);
+
+% disp(['Class of AlternatorContinuousCurrentValue: ', class(AlternatorContinuousCurrentValue)]);
+
+% disp(['Class of CableContinuousCurrentValue: ', class(CableContinuousCurrentValue)]);
+
+
+
+
+%% Check if parameter is 'Data Unavailable' or another string like 'TBC'
+
+
+
+%Is the cranking current less than the max (1000A) value?
+ if ischar(StarterMotorCrankingCurrentValue) || isstring(StarterMotorCrankingCurrentValue)
+
+      % Handle cases where the value is 'Data Unavailable', 'TBC', etc.
+
+      if strcmp(StarterMotorCrankingCurrentValue, 'Data Unavailable') || strcmp(StarterMotorCrankingCurrentValue, 'TBC')
+
+       CrankingAmpsHighorLow = 'Data Unavailable';
+
+      end
+
+ elseif isnumeric(StarterMotorCrankingCurrentValue)
+
+
+
+      % If it's numeric, compare it
+
+      if StarterMotorCrankingCurrentValue <= 1000
+
+       CrankingAmpsHighorLow = 'YES'; % Cranking current is <= 1000A
+
+      else
+
+       CrankingAmpsHighorLow = 'NO, Cranking amps over the limit, replace the starter motor'; % Cranking current is greater than 1000A
+
+      end
+
+ else
+
+      % Handle unexpected data types
+
+      CrankingAmpsHighorLow = 'Invalid Data';
+
+ end
+
+end
+  %% Check if the parameter is 'Data Unavailable' or another string like 'TBC'
+
+
+
+  %Can the cable handle the in-rush current demand?
+
+
+
+   if ischar(CrankingTimeValue) || isstring(CrankingTimeValue) || ischar(CableSizeValue) || isstring(CableSizeValue)
+
+     % Handle cases where the value is 'Data Unavailable', 'TBC', etc.
+
+     if strcmp(CrankingTimeValue, 'Data Unavailable') || strcmp(CrankingTimeValue, 'TBC') || strcmp(CableSizeValue, 'Data Unavailable') ||
+strcmp(CableSizeValue, 'TBC')
+
+
+
+       CablePeakCurrent = 'Data Unavailable';
+
+     end
+
+
+
+   elseif isnumeric(CrankingTimeValue) && isnumeric(CableSizeValue)
+
+
+
+     % If it's numeric, compare it
+
+     if CrankingTimeValue <= 5
+
+       CablePeakCurrent = ((KFactorCopper*CableSizeValue)/ sqrt (CrankingTimeValue)) ;
+
+     else
+
+       CablePeakCurrent = ['Cables unable handle peak current beyond 5s, ' ...
+
+           'investigate electrical component that needs servicing'];
+     end
+
+   else
+
+     % Handle unexpected data types
+
+         CablePeakCurrent = 'Invalid Data';
+
+   end
+
+
+
+
+ %% Can the cable handle the in-rush current demand?
+
+
+
+  if ischar(StarterMotorCrankingCurrentValue) || isstring(StarterMotorCrankingCurrentValue) || ischar(CablePeakCurrent) ||
+isstring(CablePeakCurrent)
+
+     % Handle cases where the value is 'Data Unavailable', 'TBC', etc.
+
+     if strcmp(StarterMotorCrankingCurrentValue, 'Data Unavailable') || strcmp(StarterMotorCrankingCurrentValue, 'TBC') ||
+strcmp(CablePeakCurrent, 'Data Unavailable') || strcmp(CablePeakCurrent, 'TBC')
+
+
+
+         CablePeakHandlingCapability = 'Data Unavailable';
+
+     end
+
+
+
+   elseif isnumeric(StarterMotorCrankingCurrentValue) && isnumeric(CablePeakCurrent)
+
+
+
+     % If it's numeric, compare it
+       if StarterMotorCrankingCurrentValue <= CablePeakCurrent
+
+        CablePeakHandlingCapability = 'YES';
+
+       else
+
+        CablePeakHandlingCapability = 'NO';
+
+       end
+
+   else
+
+       % Handle unexpected data types
+
+        CablePeakHandlingCapability = 'Invalid Data';
+
+ end
+
+
+
+ %% Can the cable handle the continuous current demand?
+
+
+
+  if ischar(AlternatorContinuousCurrentValue) || isstring(AlternatorContinuousCurrentValue) || ischar(CableContinuousCurrentValue) ||
+isstring(CableContinuousCurrentValue)
+
+       % Handle cases where the value is 'Data Unavailable', 'TBC', etc.
+
+     if strcmp(AlternatorContinuousCurrentValue, 'Data Unavailable') || strcmp(AlternatorContinuousCurrentValue, 'TBC') ||
+strcmp(CableContinuousCurrentValue, 'Data Unavailable') || strcmp(CableContinuousCurrentValue, 'TBC')
+
+
+
+        CableContiHandlingCapability = 'Data Unavailable';
+
+       end
+      elseif isnumeric(AlternatorContinuousCurrentValue) && isnumeric(CableContinuousCurrentValue)
+
+
+
+       % If it's numeric, compare it
+
+       if AlternatorContinuousCurrentValue <= CableContinuousCurrentValue
+
+         CableContiHandlingCapability = 'YES';
+
+       else
+
+         CableContiHandlingCapability = 'NO';
+
+       end
+
+      else
+
+       % Handle unexpected data types
+
+         CableContiHandlingCapability = 'Invalid Data';
+
+ end
+
+%% Fuse Current Rating (A) calculation
+
+
+
+if strcmp(CableContiHandlingCapability, 'YES')
+
+ FuseCurrentRatingCalculation = FusingSafetyCurrentFactor * CableContinuousCurrentValue;
+
+else
+
+ FuseCurrentRatingCalculation = 'Data Unavailable';
+
+
+
+end
+%% Closest Fuse Match Calculation
+
+
+
+% Check if FuseCurrentRating is available and numeric
+
+if isnumeric(FuseCurrentRatingCalculation)
+
+ % Calculate the absolute difference between the Fuse options and the current rating
+
+ diff = abs(FuseRatingColumn - FuseCurrentRatingCalculation);
+
+
+
+ % Find the index of the minimum difference
+
+ [~, idx] = min(diff); %The first output is the minimum value itself. The second output is the index of that minimum value in the array.
+
+
+
+ % If an index is found, get the closest fuse match
+
+ if ~isempty(idx)
+
+      FuseClosestMatch = FuseRatingColumn(idx);
+
+ else
+
+      FuseClosestMatch = 'Data Unavailable';
+
+ end
+
+else
+
+ FuseClosestMatch = 'Data Unavailable';
+
+end
+%% Fuse Thermal Energy Calculation
+
+
+
+% Check if FuseCurrentRating is available and numeric
+
+if isnumeric(StarterMotorCrankingCurrentValue) && isnumeric(CrankingTimeValue) && strcmp(CrankingAmpsHighorLow, 'YES')
+
+ % Calculate the absolute difference between the Fuse options and the current rating
+
+ RequiredThermalEnergy = (StarterMotorCrankingCurrentValue)^2 * CrankingTimeValue;
+
+ else
+
+      RequiredThermalEnergy = 'Data Unavailable';
+
+end
+
+
+
+%% Thermal Energy Match Calculation
+
+
+
+if isnumeric(RequiredThermalEnergy) && isnumeric(FuseClosestMatch)
+
+ % Extract Thermal Energy Column from the table
+
+
+
+ % Perform logical indexing to filter the values
+
+ validRows = (FuseRatingColumn == FuseClosestMatch) & (ThermalEnergyColumn > RequiredThermalEnergy);
+
+
+
+ % Check if there are valid matches
+ matchingThermalEnergy = ThermalEnergyColumn(validRows);
+
+
+
+ if ~isempty(matchingThermalEnergy)
+
+      % Return the first match
+
+      ThermalEnergyMatch = matchingThermalEnergy(1);
+
+ else
+
+      % No valid match found
+
+      ThermalEnergyMatch = 'NO MATCH';
+
+ end
+
+else
+
+ % If data is not available
+
+ ThermalEnergyMatch = 'Data Unavailable';
+
+end
+
+%% Match GB Part #
+
+
+
+% Assume the columns are already loaded into variables:
+
+% GBPartNumberColumn, ThermalEnergyColumn, FuseRatingColumn, ThermalEnergyMatch, FuseClosestMatch
+
+
+
+% Find rows where both conditions are true
+
+matchingRows = (ThermalEnergyColumn == ThermalEnergyMatch) & (FuseRatingColumn == FuseClosestMatch);
+% Find the first matching row
+
+rowIndex = find(matchingRows, 1);
+
+
+
+% Retrieve the corresponding value from GBPartNumberColumn
+
+if ~isempty(rowIndex)
+
+ GBPartNumberValue = GBPartNumberColumn(rowIndex);
+
+else
+
+ GBPartNumberValue = 'Data Unavailable'; % Handle the case when no match is found
+
+end
+
+
+
+% Display the result
+
+disp(['GBPartNumberValue: ', num2str(GBPartNumberValue)]);
+
+
+
+
+ %% Debugging:
+
+ disp(['FuseClosestMatch: ', num2str(FuseClosestMatch)]);
+
+ disp(['RequiredThermalEnergy: ', num2str(RequiredThermalEnergy)]);
+
+ disp(['ThermalEnergyMatch: ', num2str(ThermalEnergyMatch)]);
+
+ disp(['GBPartNumber: ',char(GBPartNumberValue)]);
+%disp(['Class of FuseCurrentRatingValue: ', class(FuseCurrentRatingValue)]);
+
+% disp(['StarterMotorCrankingCurrentValue: ', num2str(StarterMotorCrankingCurrentValue)]);
+
+% disp(['CrankingTimeValue: ', num2str(CrankingTimeValue)]);
+
+% disp(['CableSizeValue: ', num2str(CableSizeValue)]);
+
+% disp(['AlternatorContinuousCurrentValue: ', num2str(AlternatorContinuousCurrentValue)]);
+
+% disp(['CableContinuousCurrentValue: ', num2str(CableContinuousCurrentValue)]);
+
+% disp(['Is cranking current <= 1000A: ', num2str(CrankingAmpsHighorLow)]);
+
+% disp(['Peak/short circuit current carrying capability (A) ', num2str(CablePeakCurrent)]);
+
+% disp(['CablePeakHandlingCapability ', num2str(CablePeakHandlingCapability)]);
+
+% disp(['CableContiHandlingCapability ', num2str(CablePeakHandlingCapability)]);
+
+% disp(['FuseCurrentRating ', num2str(FuseCurrentRatingCalculation)]);
+
+% disp(['FuseClosestMatch ', num2str(FuseClosestMatch)]);
+
+% disp(['RequiredThermalEnergy ', num2str(RequiredThermalEnergy)]);
+
+
+
+
+%% Set UITable Data
+  tableData = {
+
+    % You can populate the table data here
+
+    'Is the Starter Motor Cranking amps within the limit?', CrankingAmpsHighorLow;
+
+    'Can the cable handle the in-rush current demand?', CablePeakHandlingCapability;
+
+    'Can the cable handle the continuous current demand?', CableContiHandlingCapability;
+
+    'Closest match for the fusing rating (A)', FuseClosestMatch;
+
+    ' GB Part #', char(GBPartNumberValue);
+
+
+
+
+     };
+
+
+
+  app.UITable.Data = tableData;
+
+
+
+
+  %% Define the color matrix to match the size of tableData
+
+% Initialize colorMatrix with default color 'white'
+
+colorMatrix = repmat({'white'}, size(tableData)); % Default to white for all cells
+
+
+
+% Define colors based on CrankingAmpsHighorLow for the first row
+
+switch CrankingAmpsHighorLow
+ case 'Data Unavailable'
+
+      colorMatrix(1, :) = {'yellow'};
+
+ case 'YES'
+
+      colorMatrix(1, :) = {'green'};
+
+ case 'NO, Cranking amps over the limit, replace the starter motor'
+
+      colorMatrix(1, :) = {'red'};
+
+ case 'Invalid Data'
+
+      colorMatrix(1, :) = {'gray'};
+
+end
+
+
+
+% Define colors based on CablePeakHandlingCapability for the second row
+
+switch CablePeakHandlingCapability
+
+ case 'Data Unavailable'
+
+      colorMatrix(2, :) = {'yellow'};
+
+ case 'YES'
+
+      colorMatrix(2, :) = {'green'};
+
+ case 'NO'
+
+      colorMatrix(2, :) = {'red'};
+
+ case 'Invalid Data'
+
+      colorMatrix(2, :) = {'gray'};
+end
+
+
+
+% Define colors based on CableContiHandlingCapability for the third row
+
+switch CableContiHandlingCapability
+
+ case 'Data Unavailable'
+
+      colorMatrix(3, :) = {'yellow'};
+
+ case 'YES'
+
+      colorMatrix(3, :) = {'green'};
+
+ case 'NO'
+
+      colorMatrix(3, :) = {'red'};
+
+ case 'Invalid Data'
+
+      colorMatrix(3, :) = {'gray'};
+
+end
+
+
+
+% Define colors based on FuseClosestMatch for the third row
+
+switch FuseClosestMatch
+
+ case 'Data Unavailable'
+
+      colorMatrix(4, :) = {'yellow'};
+
+ case 'YES'
+
+      colorMatrix(4, :) = {'green'};
+ case 'NO'
+
+      colorMatrix(4, :) = {'red'};
+
+ case 'Invalid Data'
+
+      colorMatrix(4, :) = {'gray'};
+
+end
+
+
+
+% Define colors based on FuseClosestMatch for the third row
+
+switch GBPartNumberValue
+
+ case 'Data Unavailable'
+
+      colorMatrix(5, :) = {'yellow'};
+
+ case 'YES'
+
+      colorMatrix(5, :) = {'green'};
+
+ case 'NO'
+
+      colorMatrix(5, :) = {'red'};
+
+ case 'Invalid Data'
+
+      colorMatrix(5, :) = {'gray'};
+
+end
+
+
+
+ %% Update the UITable Data
+
+ app.UITable.Data = tableData;
+ % Apply colors to the UITable
+
+ app.UITable.BackgroundColor = colorMatrix;
+
+   end
+
+
+
+   %% Function to check type and convert values
+
+function output = convertValue(~, val)
+
+ if iscell(val) % If it's a cell array
+
+   val = val{1}; % Extract the first element
+
+ end
+
+
+
+ % Handle different data types
+
+ if isnumeric(val)
+
+   output = val; % If numeric, leave it as is
+
+ elseif ischar(val) || isstring(val)
+
+   output = str2double(val); % Convert char or string to numeric if possible
+
+   if isnan(output)
+
+       output = string(val); % If conversion to numeric fails, convert to string
+
+   end
+
+ else
+ output = val; % If some other type, leave it unchanged (or handle as needed)
+
+end
+
+
+
+
+ end
+
+end
+Code that works with change in font
+
+
+
+
+% Value changed function: ModelDropDown
+        function ModelDropDownValueChanged(app, event)
+                                             %% TO DISPLAY MANUFACTURER AND CRANKING CURRENT %%
+ % Model name
+    selectedModel = app.ModelDropDown.Value;
+
+    %% Model column data
+    excelFilePath = 'C:\Users\BlossomFernandez\GB AUTO GROUP PTY LIMITED\DVT - Document\Projects\Simulink &
+MATLAB\Projects\APP_Fuse\Fuse_GUI.xlsx';
+
+    %% Define the sheet name
+   % MachineOnSite Sheet
+   sheetNameMachinesOnSite = 'MachinesOnSite';
+   % Fuse Library Sheet
+   sheetNameFuseLibrary    = 'Fuse_Library';
+
+   %% Read the header from the second row
+   % MachineOnSite Sheet
+   headerDataMachinesOnSite = readcell(excelFilePath, 'Sheet', sheetNameMachinesOnSite, 'Range', 'A2:X2');
+   % Fuse Library Sheet
+   headerDataFuseLibrary    = readcell(excelFilePath, 'Sheet', sheetNameFuseLibrary, 'Range', 'A1:K1');
+
+    %% Read the actual data starting from the third row
+    % MachineOnSite Sheet
+    dataMachinesOnSite = readtable(excelFilePath, 'Sheet', sheetNameMachinesOnSite, 'Range', 'A3:X1000'); % Adjust range as
+needed
+    % Fuse Library Sheet
+    dataFuseLibrary    = readtable(excelFilePath, 'Sheet', sheetNameFuseLibrary, 'Range', 'A2:K20'); % Adjust range as needed
+
+   %% Clean headers by removing line breaks and extra whitespace
+   % MachineOnSite Sheet
+   cleanedHeaderDataMachinesOnSite = regexprep(headerDataMachinesOnSite, '[\n\r]+', ''); % Remove line breaks
+   cleanedHeaderDataMachinesOnSite = strtrim(cleanedHeaderDataMachinesOnSite); % Trim leading/trailing spaces
+   % Fuse Library Sheet
+   cleanedHeaderDataFuseLibrary = regexprep(headerDataFuseLibrary, '[\n\r]+', ''); % Remove line breaks
+   cleanedHeaderDataFuseLibrary = strtrim(cleanedHeaderDataFuseLibrary); % Trim leading/trailing spaces
+
+   %% Assign cleaned column names to the table
+   % MachineOnSite Sheet
+   dataMachinesOnSite.Properties.VariableNames = cleanedHeaderDataMachinesOnSite;
+   % Fuse Library Sheet
+   dataFuseLibrary.Properties.VariableNames    = cleanedHeaderDataFuseLibrary;
+
+   %% Access the Column
+   % MachineOnSite Sheet
+   modelColumn = dataMachinesOnSite.Model;
+
+   % Fuse Library Sheet
+   FuseRatingColumn     = dataFuseLibrary.('Current rating (A)') ;
+   ThermalEnergyColumn = dataFuseLibrary.('I2t (A2s)');
+   GBPartNumberColumn = dataFuseLibrary.('GB PART #');
+
+
+   %% Perform index matching to find the selected model
+   rowIndexMachinesOnSite = find(ismember(modelColumn, selectedModel), 1);
+
+
+   %% Initialize Values
+   CrankingAmpsHighorLow = 'Data Unavailable'; % Default value
+
+   if ~isempty(rowIndexMachinesOnSite)
+       %% Assign Column Names from data table
+       StarterMotorCrankingCurrentColumnName = 'Starter Motor Peak Current (A)';
+       CrankingTimeColumnName                 = 'Cranking time (s)';
+       CableSizeColumnName                    = 'Cable Size(mm2)';
+       AlternatorContinuousCurrentColumnName = 'Alternator Continuous Current (A)';
+       CableContinuousCurrentColumnName       = 'Continuous Current (A)';
+
+
+       %% Assign Data
+       FusingSafetyCurrentFactor = 125/100;
+       KFactorCopper             = 143;
+
+        %% Extract the values in the respective column
+        StarterMotorCrankingCurrentValue = dataMachinesOnSite{rowIndexMachinesOnSite, StarterMotorCrankingCurrentColumnName};
+% Cranking current at 1000A
+        CrankingTimeValue                = dataMachinesOnSite{rowIndexMachinesOnSite, CrankingTimeColumnName}; % Cranking Time
+        CableSizeValue                   = dataMachinesOnSite{rowIndexMachinesOnSite, CableSizeColumnName}; % Cable Size
+        AlternatorContinuousCurrentValue = dataMachinesOnSite{rowIndexMachinesOnSite, AlternatorContinuousCurrentColumnName};
+% Alternator Continuous Current
+        CableContinuousCurrentValue      = dataMachinesOnSite{rowIndexMachinesOnSite, CableContinuousCurrentColumnName}; %
+Cable Continuous Current
+
+
+
+       %% Apply the function to convert values
+       StarterMotorCrankingCurrentValue = app.convertValue(StarterMotorCrankingCurrentValue);
+        CrankingTimeValue                = app.convertValue(CrankingTimeValue);
+        CableSizeValue                   = app.convertValue(CableSizeValue);
+        AlternatorContinuousCurrentValue = app.convertValue(AlternatorContinuousCurrentValue);
+        CableContinuousCurrentValue      = app.convertValue(CableContinuousCurrentValue);
+        GBPartNumberColumn               = app.convertValue(GBPartNumberColumn);
+
+        %% Debugging: Print the class of the converted value
+        % disp(['Class of StarterMotorCrankingCurrentValue: ', class(StarterMotorCrankingCurrentValue)]);
+        % disp(['Class of CrankingTimeValue: ', class(CrankingTimeValue)]);
+        % disp(['Class of CableSizeValue: ', class(CableSizeValue)]);
+        % disp(['Class of AlternatorContinuousCurrentValue: ', class(AlternatorContinuousCurrentValue)]);
+        % disp(['Class of CableContinuousCurrentValue: ', class(CableContinuousCurrentValue)]);
+
+
+        %% Check if parameter is 'Data Unavailable' or another string like 'TBC'
+
+        %Is the cranking current less than the max (1000A) value?
+
+        if ischar(StarterMotorCrankingCurrentValue) || isstring(StarterMotorCrankingCurrentValue)
+            % Handle cases where the value is 'Data Unavailable', 'TBC', etc.
+            if strcmp(StarterMotorCrankingCurrentValue, 'Data Unavailable') || strcmp(StarterMotorCrankingCurrentValue, 'TBC')
+                CrankingAmpsHighorLow = 'Data Unavailable';
+            end
+        elseif isnumeric(StarterMotorCrankingCurrentValue)
+
+             % If it's numeric, compare it
+             if StarterMotorCrankingCurrentValue <= 1000
+                  CrankingAmpsHighorLow = 'YES'; % Cranking current is <= 1000A
+             else
+                  CrankingAmpsHighorLow = 'NO, Cranking amps over the limit, replace the starter motor';   % Cranking current is
+greater than 1000A
+             end
+        else
+             % Handle unexpected data types
+             CrankingAmpsHighorLow = 'Invalid Data';
+        end
+    end
+     %% Check if the parameter is 'Data Unavailable' or another string like 'TBC'
+
+     %Can the cable handle the in-rush current demand?
+
+        if ischar(CrankingTimeValue) || isstring(CrankingTimeValue) || ischar(CableSizeValue) || isstring(CableSizeValue)
+            % Handle cases where the value is 'Data Unavailable', 'TBC', etc.
+            if strcmp(CrankingTimeValue, 'Data Unavailable') || strcmp(CrankingTimeValue, 'TBC') || strcmp(CableSizeValue,
+'Data Unavailable') || strcmp(CableSizeValue, 'TBC')
+
+                    CablePeakCurrent = 'Data Unavailable';
+              end
+
+       elseif isnumeric(CrankingTimeValue) && isnumeric(CableSizeValue)
+
+              % If it's numeric, compare it
+              if CrankingTimeValue <= 5
+                   CablePeakCurrent = ((KFactorCopper*CableSizeValue)/ sqrt (CrankingTimeValue)) ;
+              else
+                   CablePeakCurrent = ['Cables unable handle peak current beyond 5s, ' ...
+                       'investigate electrical component that needs servicing'];
+              end
+       else
+              % Handle unexpected data types
+                  CablePeakCurrent = 'Invalid Data';
+       end
+
+
+   %% Can the cable handle the in-rush current demand?
+
+    if ischar(StarterMotorCrankingCurrentValue) || isstring(StarterMotorCrankingCurrentValue) || ischar(CablePeakCurrent) ||
+isstring(CablePeakCurrent)
+            % Handle cases where the value is 'Data Unavailable', 'TBC', etc.
+            if strcmp(StarterMotorCrankingCurrentValue, 'Data Unavailable') || strcmp(StarterMotorCrankingCurrentValue, 'TBC')
+|| strcmp(CablePeakCurrent, 'Data Unavailable') || strcmp(CablePeakCurrent, 'TBC')
+
+                    CablePeakHandlingCapability = 'Data Unavailable';
+              end
+            elseif isnumeric(StarterMotorCrankingCurrentValue) && isnumeric(CablePeakCurrent)
+
+                   % If it's numeric, compare it
+                   if StarterMotorCrankingCurrentValue <= CablePeakCurrent
+                        CablePeakHandlingCapability = 'YES';
+                   else
+                        CablePeakHandlingCapability = 'NO, Change the cable to one size up;
+                   end
+            else
+                   % Handle unexpected data types
+                       CablePeakHandlingCapability = 'Invalid Data';
+      end
+
+     %% Can the cable handle the continuous current demand?
+
+   if ischar(AlternatorContinuousCurrentValue) || isstring(AlternatorContinuousCurrentValue) ||
+ischar(CableContinuousCurrentValue) || isstring(CableContinuousCurrentValue)
+            % Handle cases where the value is 'Data Unavailable', 'TBC', etc.
+            if strcmp(AlternatorContinuousCurrentValue, 'Data Unavailable') || strcmp(AlternatorContinuousCurrentValue, 'TBC')
+|| strcmp(CableContinuousCurrentValue, 'Data Unavailable') || strcmp(CableContinuousCurrentValue, 'TBC')
+
+                         CableContiHandlingCapability = 'Data Unavailable';
+                   end
+
+            elseif isnumeric(AlternatorContinuousCurrentValue) && isnumeric(CableContinuousCurrentValue)
+
+                   % If it's numeric, compare it
+                   if AlternatorContinuousCurrentValue <= CableContinuousCurrentValue
+                        CableContiHandlingCapability = 'YES';
+                   else
+                        CableContiHandlingCapability = 'NO, Change the cable to one size up
+';
+                   end
+            else
+                   % Handle unexpected data types
+                       CableContiHandlingCapability = 'Invalid Data';
+    end
+%% Fuse Current Rating (A) calculation
+if strcmp(CableContiHandlingCapability, 'YES')
+     FuseCurrentRatingCalculation = FusingSafetyCurrentFactor * CableContinuousCurrentValue;
+else
+     FuseCurrentRatingCalculation = 'Data Unavailable';
+
+end
+
+%% Closest Fuse Match Calculation
+
+% Check if FuseCurrentRating is available and numeric
+if isnumeric(FuseCurrentRatingCalculation)
+    % Calculate the absolute difference between the Fuse options and the current rating
+    diff = abs(FuseRatingColumn - FuseCurrentRatingCalculation);
+
+    % Find the index of the minimum difference
+    [~, idx] = min(diff); %The first output is the minimum value itself. The second output is the index of that minimum value
+in the array.
+
+      % If an index is found, get the closest fuse match
+      if ~isempty(idx)
+          FuseClosestMatch = FuseRatingColumn(idx);
+      else
+          FuseClosestMatch = 'Data Unavailable';
+      end
+else
+      FuseClosestMatch = 'Data Unavailable';
+end
+
+%% Fuse Thermal Energy Calculation
+
+% Check if FuseCurrentRating is available and numeric
+if isnumeric(StarterMotorCrankingCurrentValue) && isnumeric(CrankingTimeValue) && strcmp(CrankingAmpsHighorLow, 'YES')
+     % Calculate the absolute difference between the Fuse options and the current rating
+    RequiredThermalEnergy = (StarterMotorCrankingCurrentValue)^2 * CrankingTimeValue;
+     else
+         RequiredThermalEnergy = 'Data Unavailable';
+end
+%% Thermal Energy Match Calculation
+
+if isnumeric(RequiredThermalEnergy) && isnumeric(FuseClosestMatch)
+    % Extract Thermal Energy Column from the table
+
+    % Perform logical indexing to filter the values
+    validRows = (FuseRatingColumn == FuseClosestMatch) & (ThermalEnergyColumn > RequiredThermalEnergy);
+
+    % Check if there are valid matches
+    matchingThermalEnergy = ThermalEnergyColumn(validRows);
+
+    if ~isempty(matchingThermalEnergy)
+        % Return the first match
+        ThermalEnergyMatch = matchingThermalEnergy(1);
+    else
+        % No valid match found
+        ThermalEnergyMatch = 'NO MATCH';
+    end
+else
+    % If data is not available
+    ThermalEnergyMatch = 'Data Unavailable';
+end
+%% Match GB Part #
+
+% Assume the columns are already loaded into variables:
+% GBPartNumberColumn, ThermalEnergyColumn, FuseRatingColumn, ThermalEnergyMatch, FuseClosestMatch
+
+% Find rows where both conditions are true
+matchingRows = (ThermalEnergyColumn == ThermalEnergyMatch) & (FuseRatingColumn == FuseClosestMatch);
+
+% Find the first matching row
+rowIndex = find(matchingRows, 1);
+
+% Retrieve the corresponding value from GBPartNumberColumn
+if ~isempty(rowIndex)
+     GBPartNumberValue = GBPartNumberColumn(rowIndex);
+else
+      GBPartNumberValue = 'Data Unavailable';   % Handle the case when no match is found
+end
+
+% Display the result
+disp(['GBPartNumberValue: ', num2str(GBPartNumberValue)]);
+
+
+      %% Debugging:
+      % disp(['FuseClosestMatch: ', num2str(FuseClosestMatch)]);
+      % disp(['RequiredThermalEnergy: ', num2str(RequiredThermalEnergy)]);
+      % disp(['ThermalEnergyMatch: ', num2str(ThermalEnergyMatch)]);
+      % disp(['GBPartNumber: ',char(GBPartNumberValue)]);
+      %disp(['Class of FuseCurrentRatingValue: ', class(FuseCurrentRatingValue)]);
+      % disp(['StarterMotorCrankingCurrentValue: ', num2str(StarterMotorCrankingCurrentValue)]);
+      % disp(['CrankingTimeValue: ', num2str(CrankingTimeValue)]);
+      % disp(['CableSizeValue: ', num2str(CableSizeValue)]);
+      % disp(['AlternatorContinuousCurrentValue: ', num2str(AlternatorContinuousCurrentValue)]);
+      % disp(['CableContinuousCurrentValue: ', num2str(CableContinuousCurrentValue)]);
+      % disp(['Is cranking current <= 1000A: ', num2str(CrankingAmpsHighorLow)]);
+      % disp(['Peak/short circuit current carrying capability (A) ', num2str(CablePeakCurrent)]);
+      % disp(['CablePeakHandlingCapability ', num2str(CablePeakHandlingCapability)]);
+      % disp(['CableContiHandlingCapability ', num2str(CablePeakHandlingCapability)]);
+      % disp(['FuseCurrentRating ', num2str(FuseCurrentRatingCalculation)]);
+      % disp(['FuseClosestMatch ', num2str(FuseClosestMatch)]);
+      % disp(['RequiredThermalEnergy ', num2str(RequiredThermalEnergy)]);
+
+
+%% Set UITable Data
+tableData = {
+    'Is the Starter Motor Cranking amps within the limit?', CrankingAmpsHighorLow;
+    'Can the cable handle the in-rush current demand?', CablePeakHandlingCapability;
+    'Can the cable handle the continuous current demand?', CableContiHandlingCapability;
+    'Closest match for the fusing rating (A)', FuseClosestMatch;
+    'GB Part #', char(GBPartNumberValue); % Convert non-text values to char
+};
+
+% Set the table data in the UITable
+app.UITable.Data = tableData;
+%% Define a function to apply styles based on cell values
+function applyStyles(app, row, col, fontColor, fontWeight)
+    style = uistyle;
+    style.FontColor = fontColor;     % Set font color
+    style.FontWeight = fontWeight;   % Set font weight
+
+      % Apply the style to the specific cell
+      addStyle(app.UITable, style, 'cell', [row, col]);
+end
+
+%% Define a function to apply alignment
+function applyAlignment(app, row, col, hAlign)
+    alignStyle = uistyle;
+    alignStyle.HorizontalAlignment = hAlign; % Set horizontal alignment
+
+      % Apply the alignment style to the specific cell
+      addStyle(app.UITable, alignStyle, 'cell', [row, col]);
+end
+
+%% Iterate through each column and apply styles based on content
+for col = 1:size(tableData, 2)
+
+      % First Row - CrankingAmpsHighorLow
+      if isstring(tableData{1, col}) || ischar(tableData{1, col})
+          switch tableData{1, col}
+              case 'Data Unavailable'
+                  applyStyles(app, 1, col, 'yellow', 'bold');
+              case 'YES'
+                  applyStyles(app, 1, col, 'green', 'bold');
+              case 'NO, Cranking amps over the limit, replace the starter motor'
+                  applyStyles(app, 1, col, 'red', 'bold');
+              case 'Invalid Data'
+                  applyStyles(app, 1, col, 'gray', 'bold');
+              otherwise
+                  applyStyles(app, 1, col, 'black', 'normal');
+          end
+      elseif isnumeric(tableData{1, col})
+        applyStyles(app, 1, col, 'black', 'normal'); % Numeric values should be black
+    end
+    applyAlignment(app, 1, col, 'left'); % Left-align
+
+    % Second Row - CablePeakHandlingCapability
+    if isstring(tableData{2, col}) || ischar(tableData{2, col})
+        switch tableData{2, col}
+            case 'Data Unavailable'
+                applyStyles(app, 2, col, 'yellow', 'bold');
+            case 'YES'
+                applyStyles(app, 2, col, 'green', 'bold');
+            case 'NO, Change the cable to one size up
+'
+                applyStyles(app, 2, col, 'red', 'bold');
+            case 'Invalid Data'
+                applyStyles(app, 2, col, 'gray', 'bold');
+            otherwise
+                applyStyles(app, 2, col, 'black', 'normal');
+        end
+    elseif isnumeric(tableData{2, col})
+        applyStyles(app, 2, col, 'black', 'normal'); % Numeric values should be black
+    end
+    applyAlignment(app, 2, col, 'left'); % Left-align
+
+    % Third Row - CableContiHandlingCapability
+    if isstring(tableData{3, col}) || ischar(tableData{3, col})
+        switch tableData{3, col}
+            case 'Data Unavailable'
+                applyStyles(app, 3, col, 'yellow', 'bold');
+            case 'YES'
+                applyStyles(app, 3, col, 'green', 'bold');
+            case 'NO, Change the cable to one size up
+'
+                applyStyles(app, 3, col, 'red', 'bold');
+            case 'Invalid Data'
+                applyStyles(app, 3, col, 'gray', 'bold');
+            otherwise
+                applyStyles(app, 3, col, 'black', 'normal');
+    end
+elseif isnumeric(tableData{3, col})
+    applyStyles(app, 3, col, 'black', 'normal'); % Numeric values should be black
+end
+applyAlignment(app, 3, col, 'left'); % Left-align
+
+% Fourth Row - FuseClosestMatch
+if isstring(tableData{4, col}) || ischar(tableData{4, col})
+    switch tableData{4, col}
+        case 'Data Unavailable'
+            applyStyles(app, 4, col, 'yellow', 'bold');
+        case 'YES'
+            applyStyles(app, 4, col, 'green', 'bold');
+        case 'NO'
+            applyStyles(app, 4, col, 'red', 'bold');
+        case 'Invalid Data'
+            applyStyles(app, 4, col, 'gray', 'bold');
+        otherwise
+            applyStyles(app, 4, col, 'black', 'normal');
+    end
+elseif isnumeric(tableData{4, col})
+    applyStyles(app, 4, col, 'black', 'normal'); % Numeric values should be black
+end
+applyAlignment(app, 4, col, 'left'); % Left-align
+
+% Fifth Row - GBPartNumberValue
+if isstring(tableData{5, col}) || ischar(tableData{5, col})
+    switch tableData{5, col}
+        case 'Data Unavailable'
+            applyStyles(app, 5, col, 'yellow', 'bold');
+        case 'YES'
+            applyStyles(app, 5, col, 'green', 'bold');
+        case 'NO'
+            applyStyles(app, 5, col, 'red', 'bold');
+        case 'Invalid Data'
+            applyStyles(app, 5, col, 'gray', 'bold');
+        otherwise
+            applyStyles(app, 5, col, 'black', 'normal');
+          end
+      elseif isnumeric(tableData{5, col})
+          applyStyles(app, 5, col, 'black', 'normal'); % Numeric values should be black
+      end
+      applyAlignment(app, 5, col, 'left'); % Left-align
+
+end
+
+
+
+        end
+        %% Function to check type and convert values
+function output = convertValue(~, val)
+    if iscell(val) % If it's a cell array
+        val = val{1}; % Extract the first element
+    end
+
+      % Handle different data types
+      if isnumeric(val)
+          output = val; % If numeric, leave it as is
+      elseif ischar(val) || isstring(val)
+          output = str2double(val); % Convert char or string to numeric if possible
+          if isnan(output)
+              output = string(val); % If conversion to numeric fails, convert to string
+          end
+      else
+          output = val; % If some other type, leave it unchanged (or handle as needed)
+      end
+
+
+
+
+            end
+      end
+
