@@ -1,0 +1,82 @@
+[
+  {
+    "cableType": "Two Single Core",
+    "insulationType": "X-90 , XLPE",
+    "kFactor": 143.0,
+    "installationMethod": "Spaced from the surface, touching another cable, flexible & unenclosed",
+    "maxConductorTempC": 90,
+    "sizeMm2": 120.0,
+    "continuousCurrentA": 389.0,
+    "resistanceOhmPerKm": 0.188
+  },
+  {
+    "cableType": "Two Single Core",
+    "insulationType": "X-90 , XLPE",
+    "kFactor": 143.0,
+    "installationMethod": "Spaced from the surface, touching another cable, flexible & unenclosed",
+    "maxConductorTempC": 90,
+    "sizeMm2": 95.0,
+    "continuousCurrentA": 328.0,
+    "resistanceOhmPerKm": 0.236
+  },
+  {
+    "cableType": "Two Single Core",
+    "insulationType": "X-90 , XLPE",
+    "kFactor": 143.0,
+    "installationMethod": "Spaced from the surface, touching another cable, flexible & unenclosed",
+    "maxConductorTempC": 90,
+    "sizeMm2": 70.0,
+    "continuousCurrentA": 274.0,
+    "resistanceOhmPerKm": 0.327
+  },
+  {
+    "cableType": "Two Single Core",
+    "insulationType": "X-90 , XLPE",
+    "kFactor": 143.0,
+    "installationMethod": "Spaced from the surface, touching another cable, flexible & unenclosed",
+    "maxConductorTempC": 90,
+    "sizeMm2": 50.0,
+    "continuousCurrentA": 218.0,
+    "resistanceOhmPerKm": 0.471
+  },
+  {
+    "cableType": "Two Single Core",
+    "insulationType": "X-110 , XLPE",
+    "kFactor": 150.0,
+    "installationMethod": "Spaced from the surface, touching another cable, flexible & unenclosed",
+    "maxConductorTempC": 110,
+    "sizeMm2": 120.0,
+    "continuousCurrentA": 466.0,
+    "resistanceOhmPerKm": 0.188
+  },
+  {
+    "cableType": "Two Single Core",
+    "insulationType": "X-110 , XLPE",
+    "kFactor": 150.0,
+    "installationMethod": "Spaced from the surface, touching another cable, flexible & unenclosed",
+    "maxConductorTempC": 110,
+    "sizeMm2": 95.0,
+    "continuousCurrentA": 395.0,
+    "resistanceOhmPerKm": 0.236
+  },
+  {
+    "cableType": "Two Single Core",
+    "insulationType": "X-110 , XLPE",
+    "kFactor": 150.0,
+    "installationMethod": "Spaced from the surface, touching another cable, flexible & unenclosed",
+    "maxConductorTempC": 110,
+    "sizeMm2": 70.0,
+    "continuousCurrentA": 329.0,
+    "resistanceOhmPerKm": 0.327
+  },
+  {
+    "cableType": "Two Single Core",
+    "insulationType": "X-110 , XLPE",
+    "kFactor": 150.0,
+    "installationMethod": "Spaced from the surface, touching another cable, flexible & unenclosed",
+    "maxConductorTempC": 110,
+    "sizeMm2": 50.0,
+    "continuousCurrentA": 263.0,
+    "resistanceOhmPerKm": 0.471
+  }
+]

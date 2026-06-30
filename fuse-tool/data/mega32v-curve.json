@@ -1,0 +1,87 @@
+{
+  "fuseRatingsA": [
+    300.0,
+    350.0,
+    400.0,
+    450.0,
+    500.0
+  ],
+  "rows": [
+    {
+      "crankingCurrentA": 500.0,
+      "withstandTimeSByRating": {
+        "300": 10.0,
+        "350": 70.0,
+        "400": 100.0,
+        "450": 1300.0,
+        "500": null
+      }
+    },
+    {
+      "crankingCurrentA": 600.0,
+      "withstandTimeSByRating": {
+        "300": 5.0,
+        "350": 20.0,
+        "400": 25.0,
+        "450": 180.0,
+        "500": 1200.0
+      }
+    },
+    {
+      "crankingCurrentA": 650.0,
+      "withstandTimeSByRating": {
+        "300": 3.5
+      }
+    },
+    {
+      "crankingCurrentA": 700.0,
+      "withstandTimeSByRating": {
+        "300": 2.9,
+        "350": 7.0,
+        "400": 9.0,
+        "450": 40.0,
+        "500": 300.0
+      }
+    },
+    {
+      "crankingCurrentA": 800.0,
+      "withstandTimeSByRating": {
+        "300": 1.8,
+        "350": 4.0,
+        "400": 5.0,
+        "450": 17.0,
+        "500": 100.0
+      }
+    },
+    {
+      "crankingCurrentA": 900.0,
+      "withstandTimeSByRating": {
+        "300": 1.2,
+        "350": 2.4,
+        "400": 3.0,
+        "450": 7.0,
+        "500": 30.0
+      }
+    },
+    {
+      "crankingCurrentA": 1000.0,
+      "withstandTimeSByRating": {
+        "300": 0.75,
+        "350": 1.7,
+        "400": 2.0,
+        "450": 4.0,
+        "500": 10.0
+      }
+    },
+    {
+      "crankingCurrentA": 1200.0,
+      "withstandTimeSByRating": {
+        "300": 0.6,
+        "350": 0.8,
+        "400": 1.2,
+        "450": 2.2,
+        "500": 5.0
+      }
+    }
+  ]
+}

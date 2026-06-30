@@ -1,0 +1,212 @@
+[
+  {
+    "cableTypeLabel": "Thermoplastic 70\u00b0C (PVC)",
+    "kCopper": 115,
+    "kCopperHighTemp": 103,
+    "initialTempC": 70,
+    "finalTempC": "160/140"
+  },
+  {
+    "cableTypeLabel": "Thermoplastic 90\u00b0C (PVC)",
+    "kCopper": 100,
+    "kCopperHighTemp": 86,
+    "initialTempC": 90,
+    "finalTempC": "160/140"
+  },
+  {
+    "cableTypeLabel": "Thermosetting 90\u00b0C XLPE EDR",
+    "kCopper": 143,
+    "kCopperHighTemp": null,
+    "initialTempC": 90,
+    "finalTempC": 250
+  },
+  {
+    "cableTypeLabel": "Thermosetting 60\u00b0C rubber",
+    "kCopper": 141,
+    "kCopperHighTemp": null,
+    "initialTempC": 60,
+    "finalTempC": 200
+  },
+  {
+    "cableTypeLabel": "Thermosetting 85\u00b0C rubber",
+    "kCopper": 134,
+    "kCopperHighTemp": null,
+    "initialTempC": 85,
+    "finalTempC": 220
+  },
+  {
+    "cableTypeLabel": "Thermosetting 185\u00b0C silicone rubber",
+    "kCopper": 132,
+    "kCopperHighTemp": null,
+    "initialTempC": 180,
+    "finalTempC": 350
+  },
+  {
+    "cableTypeLabel": "Thermosetting 110\u00b0C XLPE",
+    "kCopper": 150,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "OEM Wiring",
+    "kCopper": 143,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Weldflex",
+    "kCopper": 150,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Weldflex PVC",
+    "kCopper": 115,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Narva",
+    "kCopper": 150,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "These values are suitable for fault durations up to 5 seconds:",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Copper (because it\u2019s the rockstar of conductors):",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermoplastic (70\u00b0C PVC): (k = 143)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermosetting (90\u00b0C XLPE or EPR): (k = 143)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermosetting (60\u00b0C rubber): (k = 141)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermosetting (85\u00b0C rubber): (k = 134)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermosetting (185\u00b0C silicone rubber): (k = 132)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Aluminium (also cool, but not as rockstar as copper):",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermoplastic (70\u00b0C PVC): (k = 103)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermosetting (90\u00b0C XLPE or EPR): (k = 94)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermosetting (60\u00b0C rubber): (k = 93)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermosetting (85\u00b0C rubber): (k = 89)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermosetting (185\u00b0C silicone rubber): (k = 87)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Steel (the sturdy backbone):",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermoplastic (70\u00b0C PVC): (k = 78)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermosetting (90\u00b0C XLPE or EPR): (k = 52)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermosetting (60\u00b0C rubber): (k = 51)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermosetting (85\u00b0C rubber): (k = 48)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  },
+  {
+    "cableTypeLabel": "Thermosetting (185\u00b0C silicone rubber): (k = 47)",
+    "kCopper": null,
+    "kCopperHighTemp": null,
+    "initialTempC": null,
+    "finalTempC": null
+  }
+]

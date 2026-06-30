@@ -1,0 +1,19 @@
+{
+  "defaultSafetyFactorPercent": 25,
+  "defaultPeakCrankingLimitA": 1000,
+  "minCrankingTimeRequiredS": 5,
+  "maxAdiabaticCrankingTimeS": 5,
+  "defaultKFactorCopper": 143,
+  "defaultElectricalSystemV": 24,
+  "minBatteryVoltage24V": 16.48,
+  "voltageDropPercentLimit": 3,
+  "standards": [
+    "AS/NZS 5000.1 (design guidelines)",
+    "AS/NZS 1125 (conductor)",
+    "AS/NZS 1995:2003 (welding cable duty cycles \u2014 reference)"
+  ],
+  "notes": [
+    "Constants align with MD6250 Project sheet and User Input defaults.",
+    "peakCurrentCutoffA per machine overrides defaultPeakCrankingLimitA when present."
+  ]
+}

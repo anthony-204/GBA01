@@ -1,0 +1,22 @@
+{
+  "sourceFile": "Fuse_GUI_APP.xlsx",
+  "importedBy": "scripts/import_from_xlsx.py",
+  "sheetNames": [
+    "User Input",
+    "Results",
+    "MachinesOnSite",
+    "StarterMotors Library",
+    "Fuse_Library",
+    "MEGA32V",
+    "Cable_Capacity",
+    "WeldingCable",
+    "Popular_Cable_sizes",
+    "Copper_K_Factor",
+    "Alternators24V Library",
+    "CableInquiry",
+    "StandardComplaince",
+    "MD6250 Project",
+    "R&D",
+    "list values"
+  ]
+}
