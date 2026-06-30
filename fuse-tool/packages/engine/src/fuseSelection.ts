@@ -179,7 +179,31 @@ export function runFuseSelection(input: FuseSelectionInputs): FuseSelectionOutpu
       value: i2tFuse > i2tRequired ? "YES" : "Marginal / NO",
       message: `Fuse I²t ${i2tFuse} vs required ${i2tRequired} A²s.`,
       specification: "I²t_fuse > I_crank² × t",
-      legacyReference: "MATLAB fuseRecommendationFromExcel.m",
+      legacyReference: "GBA-0002 § I2t",
+    });
+  }
+
+  if (rating !== null && input.cableContinuousA !== null) {
+    const protects = rating <= input.cableContinuousA;
+    checks.push({
+      id: "fuse-protects-cable",
+      label: "Does the fuse rating protect the cable?",
+      status: protects ? "pass" : "fail",
+      value: protects ? "YES" : "NO",
+      message: protects
+        ? `Fuse ${rating} A ≤ cable rating ${input.cableContinuousA} A.`
+        : `Fuse ${rating} A exceeds cable rating ${input.cableContinuousA} A — cable under-protected.`,
+      specification: "I_fuse_selected ≤ I_cable_continuous (derating not applied in V2)",
+      legacyReference: "GBA-0002 § Fuse protects cable",
+    });
+  } else {
+    checks.push({
+      id: "fuse-protects-cable",
+      label: "Does the fuse rating protect the cable?",
+      status: "unavailable",
+      value: null,
+      message: "Fuse rating or cable continuous rating unavailable.",
+      specification: "I_fuse_selected ≤ I_cable_continuous",
     });
   }
 

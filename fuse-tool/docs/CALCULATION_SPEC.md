@@ -1,31 +1,47 @@
-# Calculation specification — Phase 1 (mine-site / library mode)
+# Calculation specification — Version 2
 
 Authoritative rules for `@fuse-tool/engine`. Supersedes legacy Excel/MATLAB where noted.
 
-## Input mode
+## Input modes
 
-Phase 1: **mine-site library** — select `modelId`, optional `safetyFactorPercent` (default 25).
+| Mode | Entry point | Gate |
+|------|-------------|------|
+| **library** | `calculate(db, { mode: "library", modelId })` | `assessVehicleCompleteness()` — blocked if incomplete |
+| **manual** | `calculate(db, { mode: "manual", inputs })` | `validateManualEntry()` — blocked if invalid |
+
+Legacy `recommend()` wraps library mode only.
 
 ## Constants
 
-See `data/constants.json`. Key values: safety factor 25%, cranking limit 1000 A, min cranking time 5 s, K fallback 143.
+See `data/constants.json`. Defaults are **not** hard-coded in calculation logic — they load from constants and are listed in `derived.assumptionsUsed`.
+
+## Completeness (V2)
+
+Required library fields: peak cranking, alternator, cable type/size/rating/length/temp, peak cutoff, system voltage, cranking time.
 
 ## Checks
 
-| ID | Formula | Inputs | Legacy fix |
-|----|---------|--------|------------|
-| `cranking-limit` | I_crank ≤ I_limit | T, Q | Excel G21 |
-| `battery-voltage` | V_crank ≥ V_min | W, I | G19 compared manufacturer to voltage — **fixed** |
-| `cable-continuous` | I_alt ≤ I_cable | Z, AG | MATLAB missed col AG |
-| `cable-peak` | I_crank ≤ K×S/√t | T, AE, time | G13=0.015s bug, G31 wrong compare — **fixed** |
-| `voltage-drop` | ΔV% formula | length, R, V | G35 |
-| `fuse-rating` | 1.25× I_alt → closest | Z, library | G39–G40 |
-| `fuse-withstand` | graph time ≥ t_req | MEGA32V | G42–G52 |
-| `fuse-i2t` | I²t cross-check | supplementary | MATLAB |
-| `fuse-gb-part` | library lookup | | G61 |
+| ID | Formula | Notes |
+|----|---------|--------|
+| `data-completeness` | all required fields | Blocks calculation when incomplete |
+| `cranking-limit` | I_crank ≤ I_limit | Starter motor limit |
+| `battery-voltage` | V_crank ≥ V_min | When data available |
+| `battery-cranking-time` | t_meas ≤ t_allowed | When data available |
+| `cable-continuous` | I_alt ≤ I_cable | |
+| `cable-peak` | I_crank ≤ K×S/√t | Adiabatic short-time |
+| `voltage-drop` | ΔV% vs limit | Configurable limit |
+| `fuse-rating` | (1+safety/100)×I_alt → closest | |
+| `fuse-withstand` | graph time ≥ t_req | MEGA32V |
+| `fuse-i2t` | I²t_fuse ≥ I²×t | Supplementary |
+| `fuse-protects-cable` | I_fuse ≤ I_cable | V2 |
+| `fuse-gb-part` | library lookup | |
 
-Full detail in source comments: `packages/engine/src/recommend.ts`, `cableChecks.ts`, `fuseSelection.ts`.
+Source: `packages/engine/src/calculate.ts`, `cableChecks.ts`, `fuseSelection.ts`, `completeness.ts`, `validation.ts`.
+
+## PDF outputs
+
+`buildPdfOutputs()` — cable/fuse fields per GBA-0002 simple web app.
 
 ## Tests
 
-`npm test` — golden vectors for B45E, D10T, synthetic high cranking.
+`npm test` — Phase 1 golden vectors + V2 completeness, validation, blocked vehicles, fuse-protects-cable.

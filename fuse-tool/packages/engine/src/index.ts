@@ -1,8 +1,6 @@
 /**
- * @fuse-tool/engine — Fleet fuse & cable protection calculator (Phase 1)
- *
- * Pure TypeScript calculation engine. No UI dependencies.
- * See docs/CALCULATION_SPEC.md for rules and legacy Excel traceability.
+ * @fuse-tool/engine — Fleet fuse & cable protection calculator
+ * Version 2: library completeness gate, manual entry, PDF outputs.
  */
 
 export * from "./types.js";
@@ -10,9 +8,13 @@ export * from "./parseValue.js";
 export * from "./lookups.js";
 export * from "./cableChecks.js";
 export * from "./fuseSelection.js";
+export * from "./completeness.js";
+export * from "./validation.js";
+export * from "./fieldLabels.js";
+export * from "./outputs.js";
 export {
+  calculate,
   recommend,
-  listModelIds,
-  loadDatabase,
   IMPLEMENTATION_FIXES,
-} from "./recommend.js";
+} from "./calculate.js";
+export { listModelIds, loadDatabase } from "./catalog.js";

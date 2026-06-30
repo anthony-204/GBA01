@@ -1,6 +1,6 @@
 {
   "name": "fuse-tool",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Fleet fuse and cable protection calculator — Phase 1 implementation",
   "workspaces": [

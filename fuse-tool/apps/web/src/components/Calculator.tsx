@@ -2,154 +2,210 @@
 
 import { useMemo, useState } from "react";
 import {
-  recommend,
-  listModelIds,
+  calculate,
+  listVehiclesWithCompleteness,
+  type ManualEntryInput,
   type RecommendationResult,
 } from "@fuse-tool/engine";
 import { getDatabase } from "@/lib/db";
+import { completenessBadge, completenessText } from "@/lib/statusStyles";
 import { CheckCard } from "@/components/CheckCard";
+import { PdfResultsPanel } from "@/components/PdfResultsPanel";
+import { IncompleteVehiclePanel } from "@/components/IncompleteVehiclePanel";
+import { ManualEntryForm, DEFAULT_MANUAL_INPUT } from "@/components/ManualEntryForm";
+
+type Mode = "library" | "manual";
 
 export function Calculator() {
   const db = useMemo(() => getDatabase(), []);
-  const models = useMemo(() => listModelIds(db), [db]);
-  const [modelId, setModelId] = useState(models[0] ?? "");
-  const [safetyFactor, setSafetyFactor] = useState(
-    db.constants.defaultSafetyFactorPercent,
-  );
+  const vehicles = useMemo(() => listVehiclesWithCompleteness(db.machines), [db]);
+
+  const [mode, setMode] = useState<Mode>("library");
   const [query, setQuery] = useState("");
+  const [modelId, setModelId] = useState(
+    () => vehicles.find((v) => v.completeness.isComplete)?.id ?? vehicles[0]?.id ?? "",
+  );
+  const [safetyFactor, setSafetyFactor] = useState(db.constants.defaultSafetyFactorPercent);
+  const [voltageDropLimit, setVoltageDropLimit] = useState(db.constants.voltageDropPercentLimit);
+  const [manualInput, setManualInput] = useState<ManualEntryInput>(DEFAULT_MANUAL_INPUT);
+  const [manualResult, setManualResult] = useState<RecommendationResult | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return models;
-    return models.filter((m) => m.toLowerCase().includes(q));
-  }, [models, query]);
+    if (!q) return vehicles;
+    return vehicles.filter(
+      (v) =>
+        v.id.toLowerCase().includes(q) ||
+        (v.manufacturer?.toLowerCase().includes(q) ?? false),
+    );
+  }, [vehicles, query]);
 
-  const result: RecommendationResult | null = useMemo(() => {
-    if (!modelId) return null;
-    return recommend(db, { modelId, safetyFactorPercent: safetyFactor });
-  }, [db, modelId, safetyFactor]);
+  const selectedVehicle = vehicles.find((v) => v.id === modelId);
+
+  const libraryResult: RecommendationResult | null = useMemo(() => {
+    if (mode !== "library" || !modelId) return null;
+    return calculate(db, {
+      mode: "library",
+      modelId,
+      safetyFactorPercent: safetyFactor,
+      voltageDropLimitPercent: voltageDropLimit,
+    });
+  }, [db, mode, modelId, safetyFactor, voltageDropLimit]);
+
+  const result = mode === "library" ? libraryResult : manualResult;
+
+  const runManual = () => {
+    setManualResult(calculate(db, { mode: "manual", inputs: manualInput }));
+  };
 
   return (
-    <div className="mx-auto max-w-lg space-y-6 px-4 py-6 pb-16">
+    <div className="mx-auto max-w-lg space-y-6 px-4 py-6 pb-20">
       <header className="space-y-1">
         <p className="text-xs font-semibold uppercase tracking-widest text-sky-400">
-          GB Engineering · Phase 1
+          GB Auto · Version 2
         </p>
         <h1 className="text-2xl font-bold tracking-tight">Fuse &amp; Cable Protection</h1>
         <p className="text-sm text-slate-400">
-          Mine-site library mode — corrected logic vs legacy Excel/MATLAB
+          Design aid per GBA-0002 — engineering approval required before installation.
         </p>
       </header>
 
-      <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-        <label className="block text-sm font-medium text-slate-300" htmlFor="search">
-          Search model
-        </label>
-        <input
-          id="search"
-          type="search"
-          placeholder="Filter models…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none ring-sky-500 focus:ring-2"
-        />
-        <label className="block text-sm font-medium text-slate-300" htmlFor="model">
-          Machine model
-        </label>
-        <select
-          id="model"
-          value={modelId}
-          onChange={(e) => setModelId(e.target.value)}
-          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none ring-sky-500 focus:ring-2"
-        >
-          {filtered.map((m) => (
-            <option key={m} value={m}>
-              {m}
-            </option>
-          ))}
-        </select>
+      <div className="flex rounded-lg border border-slate-800 p-1">
+        {(["library", "manual"] as Mode[]).map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => setMode(m)}
+            className={`flex-1 rounded-md py-2 text-sm font-medium ${
+              mode === m ? "bg-sky-600 text-white" : "text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            {m === "library" ? "Vehicle library" : "Manual entry"}
+          </button>
+        ))}
+      </div>
 
-        <label className="block text-sm font-medium text-slate-300" htmlFor="safety">
-          Fuse safety factor (%)
-        </label>
-        <input
-          id="safety"
-          type="number"
-          min={0}
-          max={100}
-          value={safetyFactor}
-          onChange={(e) => setSafetyFactor(Number(e.target.value))}
-          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none ring-sky-500 focus:ring-2"
-        />
-      </section>
+      {mode === "library" ? (
+        <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+          <input
+            type="search"
+            placeholder="Search make / model…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+          />
+          <label className="block text-sm font-medium text-slate-300" htmlFor="model">
+            Machine model
+          </label>
+          <select
+            id="model"
+            value={modelId}
+            onChange={(e) => setModelId(e.target.value)}
+            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+          >
+            {filtered.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.id}
+                {v.manufacturer ? ` · ${v.manufacturer}` : ""}
+                {!v.completeness.isComplete ? " · ⚠" : ""}
+              </option>
+            ))}
+          </select>
+
+          {selectedVehicle && (
+            <span
+              className={`inline-block rounded-full border px-2 py-0.5 text-xs font-semibold ${completenessBadge(selectedVehicle.completeness.label)}`}
+            >
+              {completenessText(selectedVehicle.completeness.label)}
+            </span>
+          )}
+
+          <label className="block text-sm text-slate-300" htmlFor="safety">
+            Fuse safety factor (%)
+          </label>
+          <input
+            id="safety"
+            type="number"
+            value={safetyFactor}
+            onChange={(e) => setSafetyFactor(Number(e.target.value))}
+            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+          />
+          <label className="block text-sm text-slate-300" htmlFor="vdrop">
+            Voltage drop limit (%)
+          </label>
+          <input
+            id="vdrop"
+            type="number"
+            value={voltageDropLimit}
+            onChange={(e) => setVoltageDropLimit(Number(e.target.value))}
+            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+          />
+        </section>
+      ) : (
+        <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+          <ManualEntryForm
+            value={manualInput}
+            onChange={setManualInput}
+            onCalculate={runManual}
+            validationErrors={manualResult?.validationErrors}
+          />
+        </section>
+      )}
 
       {result && (
         <>
-          <section
-            className={`rounded-xl border p-4 ${
-              result.summary.overallStatus === "pass"
-                ? "border-emerald-600/50 bg-emerald-950/30"
-                : result.summary.overallStatus === "fail"
-                  ? "border-red-600/50 bg-red-950/30"
-                  : "border-amber-600/50 bg-amber-950/30"
-            }`}
-          >
-            <h2 className="text-sm font-semibold uppercase tracking-wide opacity-80">
-              Summary
-            </h2>
-            <p className="mt-1 text-lg font-semibold">{result.summary.recommendedAction}</p>
-            {result.machine && (
-              <p className="mt-2 text-sm opacity-80">
-                {result.machine.manufacturer} · {result.machine.category} ·{" "}
-                {result.machine.site}
-              </p>
-            )}
-          </section>
+          {result.blocked ? (
+            <IncompleteVehiclePanel result={result} />
+          ) : (
+            <>
+              <section
+                className={`rounded-xl border p-4 ${
+                  result.summary.overallStatus === "pass"
+                    ? "border-emerald-600/50 bg-emerald-950/30"
+                    : result.summary.overallStatus === "fail"
+                      ? "border-red-600/50 bg-red-950/30"
+                      : "border-amber-600/50 bg-amber-950/30"
+                }`}
+              >
+                <h2 className="text-sm font-semibold uppercase opacity-80">Summary</h2>
+                <p className="mt-1 text-lg font-semibold">{result.summary.recommendedAction}</p>
+                {result.machine && (
+                  <p className="mt-2 text-sm opacity-80">
+                    {result.machine.manufacturer} · {result.machine.category} · {result.machine.site}
+                  </p>
+                )}
+              </section>
+
+              {result.outputs && <PdfResultsPanel outputs={result.outputs} />}
+            </>
+          )}
 
           <section className="space-y-3">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-              Checks ({result.checks.length})
+              Engineering checks ({result.checks.length})
             </h2>
             {result.checks.map((c) => (
               <CheckCard key={c.id} check={c} />
             ))}
           </section>
 
-          <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-sm">
-            <h2 className="font-semibold text-slate-300">Derived values</h2>
-            <dl className="mt-2 grid grid-cols-2 gap-2 text-xs">
-              <dt className="text-slate-500">K-factor used</dt>
-              <dd>{result.derived.kFactorUsed ?? "—"}</dd>
-              <dt className="text-slate-500">Cable peak capability (A)</dt>
-              <dd>{result.derived.cablePeakCapabilityA ?? "—"}</dd>
-              <dt className="text-slate-500">Cranking time used (s)</dt>
-              <dd>{result.derived.cablePeakTimeUsedS ?? "—"}</dd>
-              <dt className="text-slate-500">Fuse target (A)</dt>
-              <dd>{result.fuse.targetRatingA?.toFixed(1) ?? "—"}</dd>
-              <dt className="text-slate-500">Fuse selected (A)</dt>
-              <dd>{result.fuse.selectedRatingA ?? "—"}</dd>
-              <dt className="text-slate-500">Voltage drop (%)</dt>
-              <dd>
-                {result.derived.voltageDropPercent !== null
-                  ? result.derived.voltageDropPercent.toFixed(2)
-                  : "—"}
-              </dd>
-            </dl>
-          </section>
-
-          <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-xs text-slate-400">
-            <h2 className="font-semibold text-slate-300">Implementation notes</h2>
-            <ul className="mt-2 list-inside list-disc space-y-1">
-              {result.implementationNotes.map((n) => (
-                <li key={n}>{n}</li>
-              ))}
-            </ul>
-          </section>
+          {!result.blocked && result.derived.assumptionsUsed.length > 0 && (
+            <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-xs text-slate-400">
+              <h2 className="font-semibold text-slate-300">Documented assumptions</h2>
+              <ul className="mt-2 list-inside list-disc space-y-1">
+                {result.derived.assumptionsUsed.map((a) => (
+                  <li key={a}>{a}</li>
+                ))}
+              </ul>
+            </section>
+          )}
         </>
       )}
 
-      <footer className="text-center text-xs text-slate-600">
-        Recommendations require engineering verification on site.
+      <footer className="rounded-lg border border-slate-800 bg-slate-900/40 p-3 text-xs text-slate-500">
+        <strong>Disclaimer:</strong> This tool is a design aid only. Final cable and fuse
+        selection must be confirmed against applicable AS/NZS standards, manufacturer datasheets,
+        site requirements, and review by a qualified electrical engineer before implementation.
       </footer>
     </div>
   );

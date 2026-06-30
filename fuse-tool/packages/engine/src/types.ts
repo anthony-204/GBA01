@@ -107,6 +107,55 @@ export interface RecommendationInputs {
   modelId: string;
   /** Safety factor as percentage (Excel G3 = 25 → 1.25× continuous) */
   safetyFactorPercent?: number;
+  /** Override voltage drop limit (%) — defaults to constants.voltageDropPercentLimit */
+  voltageDropLimitPercent?: number;
+}
+
+/** Manual entry mode — Version 2 (GBA-0002 PDF parameters) */
+export interface ManualEntryInput {
+  machineLabel?: string;
+  safetyFactorPercent: number;
+  crankingTimeRequiredS: number;
+  electricalSystemV: number;
+  voltageDropLimitPercent: number;
+  peakCrankingCurrentA: number;
+  alternatorContinuousA: number;
+  cableType: string;
+  cableSizeMm2: number;
+  cableContinuousA: number;
+  cableLengthM: number;
+  operatingTempC: number;
+  peakCurrentCutoffA: number;
+  /** Optional — overrides Copper_K_Factor lookup */
+  kFactorCopper?: number;
+  crankingVoltageMeasuredV?: number;
+  minBatteryVoltageV?: number;
+  maxAllowedCrankingTimeS?: number;
+}
+
+export type CalculationRequest =
+  | { mode: "library"; modelId: string; safetyFactorPercent?: number; voltageDropLimitPercent?: number }
+  | { mode: "manual"; inputs: ManualEntryInput };
+
+/** PDF / GBA-0002 required simple web app outputs */
+export interface PdfCableFuseOutputs {
+  cableType: string | null;
+  cableSizeMm2: number | null;
+  cableCurrentRatingA: number | null;
+  cableLengthMm: number | null;
+  cableOperatingTempC: number | null;
+  suggestedFuseSizeA: number | null;
+  fuseMakeModel: string | null;
+  fuseOperatingTempC: string | null;
+  cableSuitabilityStatus: CheckStatus;
+  fuseSuitabilityStatus: CheckStatus;
+}
+
+export interface CompletenessInfo {
+  isComplete: boolean;
+  label: "complete" | "incomplete" | "engineering-data-required";
+  missingFieldLabels: string[];
+  canRunFullRecommendation: boolean;
 }
 
 /** Single auditable check result */
@@ -144,6 +193,8 @@ export interface RecommendationResult {
     cablePeakTimeUsedS: number | null;
     voltageDropPercent: number | null;
     peakCrankingLimitA: number;
+    i2tRequiredA2s: number | null;
+    assumptionsUsed: string[];
   };
   summary: {
     overallStatus: CheckStatus;
@@ -151,4 +202,11 @@ export interface RecommendationResult {
   };
   /** Corrections applied vs legacy Excel/MATLAB */
   implementationNotes: string[];
+  /** Version 2 */
+  inputMode: "library" | "manual";
+  completeness: CompletenessInfo;
+  outputs: PdfCableFuseOutputs | null;
+  blocked: boolean;
+  blockReason?: string;
+  validationErrors?: string[];
 }
