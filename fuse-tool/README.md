@@ -2,6 +2,8 @@
 
 Fleet **fuse and cable protection calculator** for GB Engineering. This package replaces the legacy Excel workbook and incomplete MATLAB prototype with a **tested TypeScript engine**, **normalized JSON data**, and a **mobile-friendly web UI**.
 
+> **New user?** Start with **[docs/USER_GUIDE.md](./docs/USER_GUIDE.md)** — full instructions, inputs, outputs, and glossary (no Excel/MATLAB background required).
+
 ## What was completed (Phase 1)
 
 | Step | Status | Location |
@@ -13,7 +15,8 @@ Fleet **fuse and cable protection calculator** for GB Engineering. This package 
 | Calculation specification | Done | `docs/CALCULATION_SPEC.md` |
 | Standards & formulas | Done | `docs/STANDARDS_AND_CALCULATIONS.md` |
 | Legacy bug register | Done | `docs/LEGACY_BUGS_FIXED.md` |
-| Usage guide | Done | `docs/USAGE.md` |
+| Usage guide (developers) | Done | `docs/USAGE.md` |
+| **User guide (first-time users)** | Done | **`docs/USER_GUIDE.md`** |
 | Data migration guide | Done | `docs/DATA_MIGRATION.md` |
 | Phase 1 completion log | Done | `docs/PHASE1_COMPLETED.md` |
 
@@ -104,6 +107,7 @@ Tool outputs are **engineering recommendations** based on imported fleet data an
 
 ## Related documents
 
+- **[User guide (start here)](./docs/USER_GUIDE.md)** — for field users and first-time setup
 - [Analysis & full project plan](../docs/FUSE_TOOL_ANALYSIS_AND_IMPLEMENTATION_PLAN.md) (repo root `docs/`)
 - [Calculation spec](./docs/CALCULATION_SPEC.md)
-- [Usage guide](./docs/USAGE.md)
+- [Usage guide (developers)](./docs/USAGE.md)
