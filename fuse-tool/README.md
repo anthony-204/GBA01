@@ -170,6 +170,7 @@ This tool is a **design aid**. Outputs depend on imported fleet data and documen
 ## Related documents
 
 - [User guide](./docs/USER_GUIDE.md)
+- [Engineering brief (LaTeX)](./docs/engineering/GBA_FUSE_TOOL_ENGINEERING_BRIEF.tex) — equations, architecture, client communication
 - [Calculation spec](./docs/CALCULATION_SPEC.md)
 - [Standards & formulas](./docs/STANDARDS_AND_CALCULATIONS.md)
 - [Full project plan](../docs/FUSE_TOOL_ANALYSIS_AND_IMPLEMENTATION_PLAN.md)
