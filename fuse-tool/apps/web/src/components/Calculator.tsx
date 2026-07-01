@@ -13,6 +13,7 @@ import { CheckCard } from "@/components/CheckCard";
 import { PdfResultsPanel } from "@/components/PdfResultsPanel";
 import { IncompleteVehiclePanel } from "@/components/IncompleteVehiclePanel";
 import { ManualEntryForm, DEFAULT_MANUAL_INPUT } from "@/components/ManualEntryForm";
+import { NumericInput } from "@/components/NumericInput";
 
 type Mode = "library" | "manual";
 
@@ -25,8 +26,12 @@ export function Calculator() {
   const [modelId, setModelId] = useState(
     () => vehicles.find((v) => v.completeness.isComplete)?.id ?? vehicles[0]?.id ?? "",
   );
-  const [safetyFactor, setSafetyFactor] = useState(db.constants.defaultSafetyFactorPercent);
-  const [voltageDropLimit, setVoltageDropLimit] = useState(db.constants.voltageDropPercentLimit);
+  const [safetyFactor, setSafetyFactor] = useState<number | undefined>(
+    db.constants.defaultSafetyFactorPercent,
+  );
+  const [voltageDropLimit, setVoltageDropLimit] = useState<number | undefined>(
+    db.constants.voltageDropPercentLimit,
+  );
   const [manualInput, setManualInput] = useState<ManualEntryInput>(DEFAULT_MANUAL_INPUT);
   const [manualResult, setManualResult] = useState<RecommendationResult | null>(null);
 
@@ -47,8 +52,8 @@ export function Calculator() {
     return calculate(db, {
       mode: "library",
       modelId,
-      safetyFactorPercent: safetyFactor,
-      voltageDropLimitPercent: voltageDropLimit,
+      safetyFactorPercent: safetyFactor ?? db.constants.defaultSafetyFactorPercent,
+      voltageDropLimitPercent: voltageDropLimit ?? db.constants.voltageDropPercentLimit,
     });
   }, [db, mode, modelId, safetyFactor, voltageDropLimit]);
 
@@ -120,25 +125,17 @@ export function Calculator() {
             </span>
           )}
 
-          <label className="block text-sm text-slate-300" htmlFor="safety">
-            Fuse safety factor (%)
-          </label>
-          <input
+          <NumericInput
             id="safety"
-            type="number"
+            label="Fuse safety factor (%)"
             value={safetyFactor}
-            onChange={(e) => setSafetyFactor(Number(e.target.value))}
-            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+            onChange={setSafetyFactor}
           />
-          <label className="block text-sm text-slate-300" htmlFor="vdrop">
-            Voltage drop limit (%)
-          </label>
-          <input
+          <NumericInput
             id="vdrop"
-            type="number"
+            label="Voltage drop limit (%)"
             value={voltageDropLimit}
-            onChange={(e) => setVoltageDropLimit(Number(e.target.value))}
-            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+            onChange={setVoltageDropLimit}
           />
         </section>
       ) : (

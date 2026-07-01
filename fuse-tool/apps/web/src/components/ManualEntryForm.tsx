@@ -1,6 +1,7 @@
 "use client";
 
 import type { ManualEntryInput } from "@fuse-tool/engine";
+import { NumericInput } from "@/components/NumericInput";
 
 export const DEFAULT_MANUAL_INPUT: ManualEntryInput = {
   machineLabel: "Manual entry",
@@ -27,26 +28,23 @@ interface Props {
   validationErrors?: string[];
 }
 
-function Field({
+function TextField({
   label,
   id,
   value,
   onChange,
-  step = "any",
 }: {
   label: string;
   id: keyof ManualEntryInput;
-  value: string | number | undefined;
+  value: string | undefined;
   onChange: (id: keyof ManualEntryInput, v: string) => void;
-  step?: string;
 }) {
   return (
     <label className="block text-sm">
       <span className="mb-1 block text-slate-400">{label}</span>
       <input
         id={id}
-        type={typeof value === "number" ? "number" : "text"}
-        step={step}
+        type="text"
         value={value ?? ""}
         onChange={(e) => onChange(id, e.target.value)}
         className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none ring-sky-500 focus:ring-2"
@@ -55,27 +53,30 @@ function Field({
   );
 }
 
+type NumericKey =
+  | "safetyFactorPercent"
+  | "crankingTimeRequiredS"
+  | "electricalSystemV"
+  | "voltageDropLimitPercent"
+  | "peakCrankingCurrentA"
+  | "alternatorContinuousA"
+  | "cableSizeMm2"
+  | "cableContinuousA"
+  | "cableLengthM"
+  | "operatingTempC"
+  | "peakCurrentCutoffA"
+  | "crankingVoltageMeasuredV"
+  | "minBatteryVoltageV"
+  | "maxAllowedCrankingTimeS"
+  | "kFactorCopper";
+
 export function ManualEntryForm({ value, onChange, onCalculate, validationErrors }: Props) {
-  const set = (id: keyof ManualEntryInput, raw: string) => {
-    const numericKeys: (keyof ManualEntryInput)[] = [
-      "safetyFactorPercent",
-      "crankingTimeRequiredS",
-      "electricalSystemV",
-      "voltageDropLimitPercent",
-      "peakCrankingCurrentA",
-      "alternatorContinuousA",
-      "cableSizeMm2",
-      "cableContinuousA",
-      "cableLengthM",
-      "operatingTempC",
-      "peakCurrentCutoffA",
-      "crankingVoltageMeasuredV",
-      "minBatteryVoltageV",
-      "maxAllowedCrankingTimeS",
-      "kFactorCopper",
-    ];
-    const next = { ...value, [id]: numericKeys.includes(id) ? Number(raw) : raw };
-    onChange(next as ManualEntryInput);
+  const setNum = (id: NumericKey, n: number | undefined) => {
+    onChange({ ...value, [id]: n } as ManualEntryInput);
+  };
+
+  const setText = (id: keyof ManualEntryInput, raw: string) => {
+    onChange({ ...value, [id]: raw });
   };
 
   return (
@@ -92,23 +93,98 @@ export function ManualEntryForm({ value, onChange, onCalculate, validationErrors
       )}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Machine label" id="machineLabel" value={value.machineLabel} onChange={set} />
-        <Field label="Safety factor (%)" id="safetyFactorPercent" value={value.safetyFactorPercent} onChange={set} />
-        <Field label="Required cranking time (s)" id="crankingTimeRequiredS" value={value.crankingTimeRequiredS} onChange={set} />
-        <Field label="System voltage (V)" id="electricalSystemV" value={value.electricalSystemV} onChange={set} />
-        <Field label="Voltage drop limit (%)" id="voltageDropLimitPercent" value={value.voltageDropLimitPercent} onChange={set} />
-        <Field label="Starter cranking current (A)" id="peakCrankingCurrentA" value={value.peakCrankingCurrentA} onChange={set} />
-        <Field label="Alternator continuous current (A)" id="alternatorContinuousA" value={value.alternatorContinuousA} onChange={set} />
-        <Field label="Starter peak current limit (A)" id="peakCurrentCutoffA" value={value.peakCurrentCutoffA} onChange={set} />
-        <Field label="Cable type" id="cableType" value={value.cableType} onChange={set} />
-        <Field label="Cable size (mm²)" id="cableSizeMm2" value={value.cableSizeMm2} onChange={set} />
-        <Field label="Cable current rating (A)" id="cableContinuousA" value={value.cableContinuousA} onChange={set} />
-        <Field label="Cable length (m)" id="cableLengthM" value={value.cableLengthM} onChange={set} />
-        <Field label="Cable operating temp (°C)" id="operatingTempC" value={value.operatingTempC} onChange={set} />
-        <Field label="Measured cranking voltage (V) — optional" id="crankingVoltageMeasuredV" value={value.crankingVoltageMeasuredV} onChange={set} />
-        <Field label="Min battery voltage (V) — optional" id="minBatteryVoltageV" value={value.minBatteryVoltageV} onChange={set} />
-        <Field label="Max allowed cranking time (s) — optional" id="maxAllowedCrankingTimeS" value={value.maxAllowedCrankingTimeS} onChange={set} />
-        <Field label="K-factor override — optional" id="kFactorCopper" value={value.kFactorCopper} onChange={set} />
+        <TextField label="Machine label" id="machineLabel" value={value.machineLabel} onChange={setText} />
+        <NumericInput
+          label="Safety factor (%)"
+          id="safetyFactorPercent"
+          value={value.safetyFactorPercent}
+          onChange={(n) => setNum("safetyFactorPercent", n)}
+        />
+        <NumericInput
+          label="Required cranking time (s)"
+          id="crankingTimeRequiredS"
+          value={value.crankingTimeRequiredS}
+          onChange={(n) => setNum("crankingTimeRequiredS", n)}
+        />
+        <NumericInput
+          label="System voltage (V)"
+          id="electricalSystemV"
+          value={value.electricalSystemV}
+          onChange={(n) => setNum("electricalSystemV", n)}
+        />
+        <NumericInput
+          label="Voltage drop limit (%)"
+          id="voltageDropLimitPercent"
+          value={value.voltageDropLimitPercent}
+          onChange={(n) => setNum("voltageDropLimitPercent", n)}
+        />
+        <NumericInput
+          label="Starter cranking current (A)"
+          id="peakCrankingCurrentA"
+          value={value.peakCrankingCurrentA}
+          onChange={(n) => setNum("peakCrankingCurrentA", n)}
+        />
+        <NumericInput
+          label="Alternator continuous current (A)"
+          id="alternatorContinuousA"
+          value={value.alternatorContinuousA}
+          onChange={(n) => setNum("alternatorContinuousA", n)}
+        />
+        <NumericInput
+          label="Starter peak current limit (A)"
+          id="peakCurrentCutoffA"
+          value={value.peakCurrentCutoffA}
+          onChange={(n) => setNum("peakCurrentCutoffA", n)}
+        />
+        <TextField label="Cable type" id="cableType" value={value.cableType} onChange={setText} />
+        <NumericInput
+          label="Cable size (mm²)"
+          id="cableSizeMm2"
+          value={value.cableSizeMm2}
+          onChange={(n) => setNum("cableSizeMm2", n)}
+        />
+        <NumericInput
+          label="Cable current rating (A)"
+          id="cableContinuousA"
+          value={value.cableContinuousA}
+          onChange={(n) => setNum("cableContinuousA", n)}
+        />
+        <NumericInput
+          label="Cable length (m)"
+          id="cableLengthM"
+          value={value.cableLengthM}
+          onChange={(n) => setNum("cableLengthM", n)}
+        />
+        <NumericInput
+          label="Cable operating temp (°C)"
+          id="operatingTempC"
+          value={value.operatingTempC}
+          onChange={(n) => setNum("operatingTempC", n)}
+        />
+        <NumericInput
+          label="Measured cranking voltage (V) — optional"
+          id="crankingVoltageMeasuredV"
+          value={value.crankingVoltageMeasuredV}
+          onChange={(n) => setNum("crankingVoltageMeasuredV", n)}
+        />
+        <NumericInput
+          label="Min battery voltage (V) — optional"
+          id="minBatteryVoltageV"
+          value={value.minBatteryVoltageV}
+          onChange={(n) => setNum("minBatteryVoltageV", n)}
+        />
+        <NumericInput
+          label="Max allowed cranking time (s) — optional"
+          id="maxAllowedCrankingTimeS"
+          value={value.maxAllowedCrankingTimeS}
+          onChange={(n) => setNum("maxAllowedCrankingTimeS", n)}
+        />
+        <NumericInput
+          label="K-factor override — optional"
+          id="kFactorCopper"
+          value={value.kFactorCopper}
+          onChange={(n) => setNum("kFactorCopper", n)}
+        />
       </div>
 
       <button
