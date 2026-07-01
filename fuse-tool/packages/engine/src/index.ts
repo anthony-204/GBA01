@@ -17,4 +17,13 @@ export {
   recommend,
   IMPLEMENTATION_FIXES,
 } from "./calculate.js";
+export {
+  DEFAULT_MANUAL_PRESET,
+  EXCEL_MANUAL_PRESET,
+  MANUAL_ENTRY_PRESETS,
+  EXCEL_MANUAL_EXPECTED,
+  getManualEntryPreset,
+  type ManualEntryPresetId,
+  type ManualEntryPreset,
+} from "./manualEntryPresets.js";
 export { listModelIds, loadDatabase } from "./catalog.js";

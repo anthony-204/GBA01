@@ -1,31 +1,19 @@
 "use client";
 
-import type { ManualEntryInput } from "@fuse-tool/engine";
+import type { ManualEntryInput, ManualEntryPresetId } from "@fuse-tool/engine";
+import { DEFAULT_MANUAL_PRESET, getManualEntryPreset, MANUAL_ENTRY_PRESETS } from "@fuse-tool/engine";
 import { NumericInput } from "@/components/NumericInput";
 
-export const DEFAULT_MANUAL_INPUT: ManualEntryInput = {
-  machineLabel: "Manual entry",
-  safetyFactorPercent: 25,
-  crankingTimeRequiredS: 5,
-  electricalSystemV: 24,
-  voltageDropLimitPercent: 3,
-  peakCrankingCurrentA: 200,
-  alternatorContinuousA: 80,
-  cableType: "Thermosetting 90°C XLPE EDR",
-  cableSizeMm2: 70,
-  cableContinuousA: 314,
-  cableLengthM: 6,
-  operatingTempC: 60,
-  peakCurrentCutoffA: 500,
-  crankingVoltageMeasuredV: 20,
-  minBatteryVoltageV: 16.48,
-};
+/** @deprecated Use DEFAULT_MANUAL_PRESET from engine — kept for import compatibility. */
+export const DEFAULT_MANUAL_INPUT = DEFAULT_MANUAL_PRESET;
 
 interface Props {
   value: ManualEntryInput;
   onChange: (next: ManualEntryInput) => void;
   onCalculate: () => void;
   validationErrors?: string[];
+  presetId: ManualEntryPresetId;
+  onPresetChange: (id: ManualEntryPresetId) => void;
 }
 
 function TextField({
@@ -70,7 +58,14 @@ type NumericKey =
   | "maxAllowedCrankingTimeS"
   | "kFactorCopper";
 
-export function ManualEntryForm({ value, onChange, onCalculate, validationErrors }: Props) {
+export function ManualEntryForm({
+  value,
+  onChange,
+  onCalculate,
+  validationErrors,
+  presetId,
+  onPresetChange,
+}: Props) {
   const setNum = (id: NumericKey, n: number | undefined) => {
     onChange({ ...value, [id]: n } as ManualEntryInput);
   };
@@ -91,6 +86,33 @@ export function ManualEntryForm({ value, onChange, onCalculate, validationErrors
           </ul>
         </div>
       )}
+
+      <div className="space-y-2 rounded-lg border border-slate-800 bg-slate-950/50 p-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Field preset</p>
+        <div className="flex flex-wrap gap-2">
+          {MANUAL_ENTRY_PRESETS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => {
+                onPresetChange(p.id);
+                onChange(getManualEntryPreset(p.id));
+              }}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                presetId === p.id
+                  ? "bg-sky-600 text-white"
+                  : "border border-slate-700 text-slate-400 hover:border-slate-500"
+              }`}
+              title={p.description}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-slate-500">
+          {MANUAL_ENTRY_PRESETS.find((p) => p.id === presetId)?.description}
+        </p>
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <TextField label="Machine label" id="machineLabel" value={value.machineLabel} onChange={setText} />

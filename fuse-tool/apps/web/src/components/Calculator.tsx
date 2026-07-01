@@ -14,6 +14,7 @@ import { PdfResultsPanel } from "@/components/PdfResultsPanel";
 import { IncompleteVehiclePanel } from "@/components/IncompleteVehiclePanel";
 import { ManualEntryForm, DEFAULT_MANUAL_INPUT } from "@/components/ManualEntryForm";
 import { NumericInput } from "@/components/NumericInput";
+import type { ManualEntryPresetId } from "@fuse-tool/engine";
 
 type Mode = "library" | "manual";
 
@@ -33,6 +34,7 @@ export function Calculator() {
     db.constants.voltageDropPercentLimit,
   );
   const [manualInput, setManualInput] = useState<ManualEntryInput>(DEFAULT_MANUAL_INPUT);
+  const [manualPresetId, setManualPresetId] = useState<ManualEntryPresetId>("default");
   const [manualResult, setManualResult] = useState<RecommendationResult | null>(null);
 
   const filtered = useMemo(() => {
@@ -145,6 +147,8 @@ export function Calculator() {
             onChange={setManualInput}
             onCalculate={runManual}
             validationErrors={manualResult?.validationErrors}
+            presetId={manualPresetId}
+            onPresetChange={setManualPresetId}
           />
         </section>
       )}
