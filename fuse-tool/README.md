@@ -1,8 +1,10 @@
 # Fuse Tool — GB Auto Fuse & Cable Protection
 
-Fleet **fuse and cable protection calculator** for GB Engineering (GBA-0002). Replaces the legacy Excel workbook with a **tested TypeScript engine**, **normalized JSON vehicle library**, and a **mobile-friendly web UI**.
+Fleet **fuse and cable protection calculator** for GB Engineering (GBA-0002).
 
-> **New user?** Start with **[docs/USER_GUIDE.md](./docs/USER_GUIDE.md)** — inputs, outputs, and glossary.
+> **This branch (`feature/gba0002-client-deliverable`):** Simplified **client deliverable** per revised GBA-0002 PDF — 9 machines, 4 user inputs. See **[docs/GBA0002_CLIENT_DELIVERABLE.md](./docs/GBA0002_CLIENT_DELIVERABLE.md)**.
+
+> **End users (full V2):** See **[docs/USER_GUIDE.md](./docs/USER_GUIDE.md)** on `main`.
 
 ## Version 2 (current)
 

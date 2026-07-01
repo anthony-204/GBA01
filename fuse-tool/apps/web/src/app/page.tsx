@@ -1,5 +1,5 @@
-import { Calculator } from "@/components/Calculator";
+import { Gba0002Calculator } from "@/components/Gba0002Calculator";
 
 export default function HomePage() {
-  return <Calculator />;
+  return <Gba0002Calculator />;
 }
