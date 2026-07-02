@@ -31,7 +31,6 @@ import type {
   Gba0002LineItem,
   Gba0002Result,
   Gba0002UserInputs,
-  Gba0002Validation,
 } from "./types.js";
 import {
   mergeValidation,
@@ -193,9 +192,7 @@ export function calculateGba0002(
   inputs: Gba0002UserInputs,
 ): Gba0002Result {
   const lineItems: Gba0002LineItem[] = [];
-  const emptyValidation: Gba0002Validation = { errors: [], warnings: [] };
   const machine = findMachine(db, inputs.modelId);
-  const validationCrankingTimeS = inputs.crankingTimeS ?? GBA0002_CRANKING_TIME_S;
   /** GBA-0002 PDF line item 11 — engineering calculations use 5 s unless fleet record overrides. */
   const calculationCrankingTimeS = GBA0002_CRANKING_TIME_S;
 

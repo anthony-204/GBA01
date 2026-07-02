@@ -115,7 +115,9 @@ export function Gba0002Calculator() {
           <NumericInput
             label="Safety factor (%) — Advanced Mode (0–60)"
             value={safetyFactor}
-            onChange={setSafetyFactor}
+            onChange={(v) => {
+              if (v !== undefined) setSafetyFactor(v);
+            }}
           />
         )}
 
