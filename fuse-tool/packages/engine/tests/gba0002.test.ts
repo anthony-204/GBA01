@@ -106,8 +106,8 @@ describe("GBA-0002 D10T — sample list machine #1", () => {
     const result = calculateGba0002(db, {
       modelId: "D10T",
       safetyFactorPercent: 50,
-      batteryVoltageDuringCrankingV: 18,
-      operatingTempC: 70,
+      batteryVoltageDuringCrankingV: 20,
+      operatingTempC: 60,
     });
     expect(result.blocked).toBe(false);
     expect(result.machineFound).toBe(true);

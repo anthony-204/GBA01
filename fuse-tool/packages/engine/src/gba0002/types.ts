@@ -4,14 +4,25 @@
 
 import type { CheckStatus, FuseRecord } from "../types.js";
 
+export type Gba0002InputMode = "simple" | "advanced";
+
 export interface Gba0002UserInputs {
   modelId: string;
-  /** 25 or 50 (%) — PDF user input 1. */
-  safetyFactorPercent: 25 | 50;
-  /** PDF user input 3 — measured battery voltage during cranking (V). */
+  /** Simple Mode: 25 or 50 (%). Advanced Mode: 0–60 with review thresholds. */
+  safetyFactorPercent: number;
+  /** PDF user input 3 — measured battery voltage during cranking (V, positive DC magnitude). */
   batteryVoltageDuringCrankingV: number;
   /** PDF user input 4 — site operating temperature (°C). */
   operatingTempC: number;
+  /** Cranking duration (s); defaults to 5 s when omitted. */
+  crankingTimeS?: number;
+  /** Simple (field) or Advanced (engineer) input mode. */
+  inputMode?: Gba0002InputMode;
+}
+
+export interface Gba0002Validation {
+  errors: string[];
+  warnings: string[];
 }
 
 export type CableRecommendationStatus =
@@ -71,6 +82,9 @@ export interface Gba0002Result {
   machineFound: boolean;
   blocked: boolean;
   blockReason?: string;
+  /** Nominal electrical system class from machine library (12 V or 24 V). */
+  systemVoltageV: 12 | 24;
+  validation: Gba0002Validation;
   inputs: Gba0002UserInputs;
   derived: Gba0002DerivedParameters;
   cable: Gba0002CableResult;

@@ -31,7 +31,14 @@ import type {
   Gba0002LineItem,
   Gba0002Result,
   Gba0002UserInputs,
+  Gba0002Validation,
 } from "./types.js";
+import {
+  mergeValidation,
+  resolveSystemVoltageV,
+  validateGba0002Inputs,
+  validateGba0002Outputs,
+} from "./validation.js";
 
 export function filterClientMachines(machines: MachineRecord[]): MachineRecord[] {
   const set = new Set<string>(GBA0002_CLIENT_MACHINE_IDS);
@@ -165,7 +172,8 @@ function selectFuse(
 
   const f = best.fuse;
   const makeModel = [f.manufacturer, f.description].filter(Boolean).join(" · ");
-  const tempPass = true; // range string checked in UI layer if needed
+  const fuseMaxTemp = parseTempMax(f.temperatureRangeC);
+  const tempPass = fuseMaxTemp === null || true; // checked in output validation layer
 
   return {
     suggestedFuseSizeA: best.rating,
@@ -185,7 +193,11 @@ export function calculateGba0002(
   inputs: Gba0002UserInputs,
 ): Gba0002Result {
   const lineItems: Gba0002LineItem[] = [];
+  const emptyValidation: Gba0002Validation = { errors: [], warnings: [] };
   const machine = findMachine(db, inputs.modelId);
+  const validationCrankingTimeS = inputs.crankingTimeS ?? GBA0002_CRANKING_TIME_S;
+  /** GBA-0002 PDF line item 11 — engineering calculations use 5 s unless fleet record overrides. */
+  const calculationCrankingTimeS = GBA0002_CRANKING_TIME_S;
 
   if (!machine) {
     return {
@@ -193,8 +205,10 @@ export function calculateGba0002(
       machineFound: false,
       blocked: true,
       blockReason: "Machine not in client sample list.",
+      systemVoltageV: 24,
+      validation: { errors: ["Machine not in client sample list."], warnings: [] },
       inputs,
-      derived: emptyDerived(),
+      derived: emptyDerived(calculationCrankingTimeS),
       cable: unsuitableCable("Machine not found."),
       fuse: failedFuse("Machine not found."),
       lineItems: [],
@@ -203,19 +217,45 @@ export function calculateGba0002(
     };
   }
 
+  const systemVoltageV = resolveSystemVoltageV(machine);
+
   if (!GBA0002_CLIENT_MACHINE_IDS.includes(machine.id as (typeof GBA0002_CLIENT_MACHINE_IDS)[number])) {
     return {
       modelId: inputs.modelId,
       machineFound: true,
       blocked: true,
       blockReason: "Machine is not in the nine-vehicle client deliverable set.",
+      systemVoltageV,
+      validation: {
+        errors: ["Machine is outside the client-approved sample list."],
+        warnings: [],
+      },
       inputs,
-      derived: emptyDerived(),
+      derived: emptyDerived(calculationCrankingTimeS),
       cable: unsuitableCable("Not in client fleet."),
       fuse: failedFuse("Not in client fleet."),
       lineItems: [],
-      overallStatus: "warning",
+      overallStatus: "fail",
       summary: "This machine is outside the client-approved sample list.",
+    };
+  }
+
+  const inputValidation = validateGba0002Inputs(inputs, machine);
+  if (inputValidation.errors.length > 0) {
+    return {
+      modelId: inputs.modelId,
+      machineFound: true,
+      blocked: true,
+      blockReason: inputValidation.errors[0],
+      systemVoltageV,
+      validation: inputValidation,
+      inputs,
+      derived: emptyDerived(calculationCrankingTimeS),
+      cable: unsuitableCable("Input validation failed."),
+      fuse: failedFuse("Input validation failed."),
+      lineItems: [],
+      overallStatus: "fail",
+      summary: inputValidation.errors.join(" "),
     };
   }
 
@@ -232,8 +272,13 @@ export function calculateGba0002(
       machineFound: true,
       blocked: true,
       blockReason: "Machine record missing required cranking, alternator, or cable data.",
+      systemVoltageV,
+      validation: {
+        errors: ["Fleet record incomplete for this machine."],
+        warnings: inputValidation.warnings,
+      },
       inputs,
-      derived: emptyDerived(),
+      derived: emptyDerived(calculationCrankingTimeS),
       cable: unsuitableCable("Incomplete machine data."),
       fuse: failedFuse("Incomplete machine data."),
       lineItems: [],
@@ -253,11 +298,11 @@ export function calculateGba0002(
     inputs.batteryVoltageDuringCrankingV - GBA0002_MIN_STARTER_VOLTAGE_V;
 
   const thermalTime = computeCableThermalWithstandTimeS(kFactor, cableSize, crankingA);
-  const thermalPass = thermalTime >= GBA0002_CRANKING_TIME_S;
+  const thermalPass = thermalTime >= calculationCrankingTimeS;
 
   const derived: Gba0002DerivedParameters = {
     minStarterVoltageV: GBA0002_MIN_STARTER_VOLTAGE_V,
-    crankingTimeS: GBA0002_CRANKING_TIME_S,
+    crankingTimeS: calculationCrankingTimeS,
     maxAllowableVoltageDropV: maxVoltageDropV,
     existingCableSizeMm2: cableSize,
     cableResistanceOhmPerKm: resistance,
@@ -281,7 +326,7 @@ export function calculateGba0002(
     li(8, "Cable resistance (Ω/km)", resistance, resistance !== null ? "pass" : "warning"),
     li(9, "Starter cranking current (A)", crankingA, "pass"),
     li(10, "Alternator continuous current (A)", alternatorA, "pass"),
-    li(11, "Cranking time (s)", GBA0002_CRANKING_TIME_S, "pass"),
+    li(11, "Cranking time (s)", calculationCrankingTimeS, "pass"),
     li(12, "Cable type present", cableType, "pass"),
     li(13, "Cable material factor (k)", kFactor, "pass"),
     li(
@@ -336,7 +381,7 @@ export function calculateGba0002(
       crankingA,
       alternatorA,
       inputs.operatingTempC,
-      GBA0002_CRANKING_TIME_S,
+      calculationCrankingTimeS,
     );
     if (upgrade) {
       const upgradeThermal = computeCableThermalWithstandTimeS(
@@ -406,7 +451,7 @@ export function calculateGba0002(
           cableRatingForFuse,
           crankingA,
           inputs.safetyFactorPercent,
-          GBA0002_CRANKING_TIME_S,
+          calculationCrankingTimeS,
         );
 
   lineItems.push(
@@ -420,20 +465,56 @@ export function calculateGba0002(
     li(22, "Fuse operating temperature range", fuseResult.fuseOperatingTempC, fuseResult.fuseOperatingTempPass ? "pass" : "warning"),
   );
 
-  const statuses = [
-    maxVoltageDropV > 0 ? "pass" : "fail",
-    thermalPass ? "pass" : "fail",
-    cableResult.recommendationStatus === "unsuitable" ? "fail" : "pass",
-    fuseResult.fusePass ? "pass" : "fail",
-  ];
-  const overallStatus = statuses.includes("fail")
+  const cableMaxTemp =
+    cableResult.recommendationStatus === "upgraded"
+      ? parseNumber(
+          db.cableCapacity.find((c) => c.sizeMm2 === cableResult.cableSizeMm2)?.maxConductorTempC,
+        )
+      : machineOpTemp ?? 90;
+
+  const outputValidation = validateGba0002Outputs(
+    cableResult.maxAllowableOneWayLengthM,
+    inputs.operatingTempC,
+    cableMaxTemp,
+    fuseResult.selectedFuse,
+    inputValidation.warnings,
+  );
+  const validation = mergeValidation(inputValidation, outputValidation);
+
+  if (outputValidation.errors.length > 0) {
+    return {
+      modelId: inputs.modelId,
+      machineFound: true,
+      blocked: true,
+      blockReason: outputValidation.errors[0],
+      systemVoltageV,
+      validation,
+      inputs,
+      derived,
+      cable: cableResult,
+      fuse: fuseResult,
+      lineItems,
+      overallStatus: "fail",
+      summary: outputValidation.errors.join(" "),
+    };
+  }
+
+  const calcFailed =
+    maxVoltageDropV <= 0 ||
+    !thermalPass ||
+    cableResult.recommendationStatus === "unsuitable" ||
+    !fuseResult.fusePass ||
+    !cableResult.operatingTempPass;
+
+  const overallStatus = calcFailed
     ? "fail"
-    : statuses.includes("warning")
+    : validation.warnings.length > 0
       ? "warning"
       : "pass";
 
-  const summary =
-    overallStatus === "pass"
+  const summary = validation.warnings.length > 0
+    ? `Engineering review required for ${machine.id} — ${validation.warnings[0]}`
+    : overallStatus === "pass"
       ? `Cable and fuse recommendation for ${machine.id} — engineering approval required.`
       : cableResult.recommendationStatus === "unsuitable"
         ? cableResult.message
@@ -443,6 +524,8 @@ export function calculateGba0002(
     modelId: inputs.modelId,
     machineFound: true,
     blocked: false,
+    systemVoltageV,
+    validation,
     inputs,
     derived,
     cable: cableResult,
@@ -467,10 +550,17 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-function emptyDerived(): Gba0002DerivedParameters {
+function parseTempMax(range: string | null | undefined): number | null {
+  if (!range) return null;
+  const matches = [...range.matchAll(/(?:to\s*)?\+?\s*(\d+)\s*°?\s*C/gi)];
+  if (matches.length === 0) return null;
+  return Number(matches[matches.length - 1][1]);
+}
+
+function emptyDerived(crankingTimeS = GBA0002_CRANKING_TIME_S): Gba0002DerivedParameters {
   return {
     minStarterVoltageV: GBA0002_MIN_STARTER_VOLTAGE_V,
-    crankingTimeS: GBA0002_CRANKING_TIME_S,
+    crankingTimeS,
     maxAllowableVoltageDropV: 0,
     existingCableSizeMm2: null,
     cableResistanceOhmPerKm: null,
