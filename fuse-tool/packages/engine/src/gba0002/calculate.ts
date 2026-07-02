@@ -208,9 +208,9 @@ export function calculateGba0002(
         thermalWithstandPass: true,
         maxAllowableOneWayLengthM: maxLen !== null ? round2(maxLen) : null,
         operatingTempRangeC:
-          upgrade.maxConductorTempC !== null ? `Up to ${upgrade.maxConductorTempC}°C` : null,
+          upgrade.maxConductorTempC != null ? `Up to ${upgrade.maxConductorTempC}°C` : null,
         operatingTempPass:
-          upgrade.maxConductorTempC === null ||
+          upgrade.maxConductorTempC == null ||
           inputs.operatingTempC <= upgrade.maxConductorTempC,
         message: `Upgrade to ${upgrade.sizeMm2} mm².`,
       };
