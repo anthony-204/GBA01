@@ -8,6 +8,8 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   calculateGba0002,
+  cableThermalWithstandPass,
+  computeCablePeakCapabilityA,
   computeCableThermalWithstandTimeS,
   computeMaxAllowableOneWayLengthM,
   filterClientMachines,
@@ -46,6 +48,14 @@ describe("GBA-0002 formulas", () => {
     const len = computeMaxAllowableOneWayLengthM(4, 200, 0.327);
     expect(len).not.toBeNull();
     expect(len!).toBeCloseTo(30.58, 1);
+  });
+
+  it("thermal peak capability matches (k×S/I)² check", () => {
+    const t = computeCableThermalWithstandTimeS(143, 70, 200);
+    const peak = computeCablePeakCapabilityA(143, 70, GBA0002_CRANKING_TIME_S);
+    expect(t).toBeGreaterThanOrEqual(GBA0002_CRANKING_TIME_S);
+    expect(200).toBeLessThanOrEqual(peak);
+    expect(cableThermalWithstandPass(143, 70, 200, GBA0002_CRANKING_TIME_S)).toBe(true);
   });
 
   it("max voltage drop = battery V − 16 V", () => {

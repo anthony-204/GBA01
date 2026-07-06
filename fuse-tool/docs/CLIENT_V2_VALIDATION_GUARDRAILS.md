@@ -48,6 +48,7 @@ Client v1 allowed absurd inputs to produce misleading “Pass” outcomes. Clien
 4. Validation errors and warnings surfaced in UI; results hidden when blocked.
 5. `overallStatus` never `pass` when warnings are present (review required).
 6. `Gba0002Result.validation` and `systemVoltageV` fields for traceability.
+7. **GBA-0002 PDF (2) alignment:** K-factor lookup by cable type (MachinesOnSite AD → Copper_k_factor); thermal check `(k×S/I)² ≥ t` equivalent to `I ≤ k×S/√t`; cable continuous-current and fuse temperature gates — see `docs/GBA0002_ENGINEERING_THEORY.md`.
 
 ## Running tests
 

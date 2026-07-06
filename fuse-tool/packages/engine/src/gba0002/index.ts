@@ -1,5 +1,6 @@
 export * from "./constants.js";
 export * from "./types.js";
+export * from "./helpers.js";
 export {
   validateGba0002Inputs,
   validateGba0002Outputs,
