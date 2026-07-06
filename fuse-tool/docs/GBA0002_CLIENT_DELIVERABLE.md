@@ -66,9 +66,9 @@ User inputs + machine lookup (MachinesOnSite)
     ↓
 Max voltage drop (V) = battery V during cranking − 16
     ↓
-Lookup: cable size (AE), resistance (Cable_Capacity), cranking (T), alternator (Z), cable type (AD), k-factor
+Lookup: cable size (AE), resistance (Cable_Capacity), cranking (Q), alternator (Z), cable type (AD), **k-factor by cable type** (Copper_k_factor A:B — not machine model)
     ↓
-Thermal withstand time = (k × S / I)²
+Thermal withstand time = (k × S / I)²  ⟺  I ≤ k × S / √(cranking time)  — see `docs/GBA0002_ENGINEERING_THEORY.md`
     ↓
 Pass? ──YES──► Keep existing cable → rating from AG → max length → fuse select
     │

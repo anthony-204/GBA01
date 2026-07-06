@@ -14,7 +14,6 @@ import { parseNumber } from "../parseValue.js";
 import {
   findMachine,
   findFuseRecord,
-  lookupKFactor,
   lookupCableResistance,
   lookupWithstandTimeS,
   sortedFuseRatingOptions,
@@ -24,6 +23,13 @@ import {
   GBA0002_CRANKING_TIME_S,
   GBA0002_MIN_STARTER_VOLTAGE_V,
 } from "./constants.js";
+import {
+  cableThermalWithstandPass,
+  computeCablePeakCapabilityA,
+  lookupKFactorStrict,
+  parseTemperatureLimit,
+  temperatureSupported,
+} from "./helpers.js";
 import type {
   Gba0002CableResult,
   Gba0002DerivedParameters,
@@ -70,7 +76,8 @@ function findUpgradeCable(
 ): CableCapacityRow | null {
   const candidates = db.cableCapacity
     .filter((row) => {
-      const k = row.kFactor ?? db.constants.defaultKFactorCopper;
+      const k = lookupKFactorStrict(row.cableType, db.copperKFactors);
+      if (k === null) return false;
       const thermal = computeCableThermalWithstandTimeS(k, row.sizeMm2, crankingA);
       const maxT = parseNumber(row.maxConductorTempC);
       return (
@@ -88,11 +95,6 @@ function parseTempRange(maxTemp: number | null | undefined): string {
   return `Up to ${maxTemp}°C`;
 }
 
-function operatingTempOk(userTemp: number, maxTemp: number | null | undefined): boolean {
-  if (maxTemp === null || maxTemp === undefined) return true;
-  return userTemp <= maxTemp;
-}
-
 function selectFuse(
   db: FuseToolDatabase,
   alternatorA: number,
@@ -100,6 +102,7 @@ function selectFuse(
   inrushA: number,
   safetyFactorPercent: number,
   crankingTimeS: number,
+  operatingTempC: number,
 ): Gba0002FuseResult {
   const options = sortedFuseRatingOptions(db.fuseLibrary);
   const minTarget = alternatorA * (1 + safetyFactorPercent / 100);
@@ -117,6 +120,11 @@ function selectFuse(
     if (rating < minTarget - 0.01) continue;
 
     const fuse = findFuseRecord(rating, breakingCurrent, db.fuseLibrary);
+    if (!fuse) continue;
+    const fuseTemp = parseTemperatureLimit(fuse.temperatureRangeC);
+    const fuseTempOk = temperatureSupported(operatingTempC, fuseTemp);
+    if (fuseTempOk !== true) continue;
+
     const withstand = lookupWithstandTimeS(
       breakingCurrent,
       rating,
@@ -135,6 +143,9 @@ function selectFuse(
     for (const rating of options) {
       if (rating < alternatorA || rating > cableRatingA) continue;
       const fuse = findFuseRecord(rating, breakingCurrent, db.fuseLibrary);
+      if (!fuse) continue;
+      const fuseTemp = parseTemperatureLimit(fuse.temperatureRangeC);
+      if (temperatureSupported(operatingTempC, fuseTemp) !== true) continue;
       const withstand = lookupWithstandTimeS(
         breakingCurrent,
         rating,
@@ -165,7 +176,7 @@ function selectFuse(
 
   const f = best.fuse;
   const makeModel = [f.manufacturer, f.description].filter(Boolean).join(" · ");
-  const tempPass = true; // range string checked in UI layer if needed
+  const tempPass = temperatureSupported(operatingTempC, parseTemperatureLimit(f.temperatureRangeC)) === true;
 
   return {
     suggestedFuseSizeA: best.rating,
@@ -242,7 +253,23 @@ export function calculateGba0002(
     };
   }
 
-  const kFactor = lookupKFactor(cableType, db.copperKFactors, db.constants.defaultKFactorCopper);
+  const kFactor = lookupKFactorStrict(cableType, db.copperKFactors);
+  if (kFactor === null) {
+    return {
+      modelId: inputs.modelId,
+      machineFound: true,
+      blocked: true,
+      blockReason: "K-factor not found for this cable type.",
+      inputs,
+      derived: emptyDerived(),
+      cable: unsuitableCable("K-factor not found for this cable type. Engineering review required."),
+      fuse: failedFuse("K-factor lookup failed."),
+      lineItems: [],
+      overallStatus: "fail",
+      summary: "K-factor not found for cable type from MachinesOnSite (AD) in Copper_k_factor.",
+    };
+  }
+
   const resistance =
     lookupCableResistance(cableSize, db.cableCapacity) ??
   parseNumber(
@@ -253,7 +280,16 @@ export function calculateGba0002(
     inputs.batteryVoltageDuringCrankingV - GBA0002_MIN_STARTER_VOLTAGE_V;
 
   const thermalTime = computeCableThermalWithstandTimeS(kFactor, cableSize, crankingA);
-  const thermalPass = thermalTime >= GBA0002_CRANKING_TIME_S;
+  const peakCapA = round2(computeCablePeakCapabilityA(kFactor, cableSize, GBA0002_CRANKING_TIME_S));
+  const thermalPass = cableThermalWithstandPass(
+    kFactor,
+    cableSize,
+    crankingA,
+    GBA0002_CRANKING_TIME_S,
+  );
+  const currentPass = existingCableCont !== null && existingCableCont >= alternatorA;
+  const machineTempLimit = parseTemperatureLimit(machineOpTemp);
+  const cableTempOk = temperatureSupported(inputs.operatingTempC, machineTempLimit);
 
   const derived: Gba0002DerivedParameters = {
     minStarterVoltageV: GBA0002_MIN_STARTER_VOLTAGE_V,
@@ -283,13 +319,13 @@ export function calculateGba0002(
     li(10, "Alternator continuous current (A)", alternatorA, "pass"),
     li(11, "Cranking time (s)", GBA0002_CRANKING_TIME_S, "pass"),
     li(12, "Cable type present", cableType, "pass"),
-    li(13, "Cable material factor (k)", kFactor, "pass"),
+    li(13, "Cable material factor (k)", kFactor, "pass", "Copper_k_factor lookup by cable type (AD)"),
     li(
       14,
       "Cable thermal withstand time (s)",
       round2(thermalTime),
       thermalPass ? "pass" : "fail",
-      `(k×S/I)² = (${kFactor}×${cableSize}/${crankingA})²`,
+      `(k×S/I)² = (${kFactor}×${cableSize}/${crankingA})²; peak cap ${peakCapA} A = k×S/√t`,
     ),
     li(
       15,
@@ -301,12 +337,18 @@ export function calculateGba0002(
 
   let cableResult: Gba0002CableResult;
 
-  if (thermalPass) {
+  const existingOk =
+    thermalPass &&
+    currentPass &&
+    cableTempOk === true &&
+    maxVoltageDropV > 0;
+
+  if (existingOk) {
     const maxLen =
       resistance !== null
         ? computeMaxAllowableOneWayLengthM(maxVoltageDropV, crankingA, resistance)
         : null;
-    const opPass = operatingTempOk(inputs.operatingTempC, machineOpTemp ?? 90);
+    const opPass = cableTempOk === true;
     cableResult = {
       recommendationStatus: "no-change",
       cableType,
@@ -339,8 +381,9 @@ export function calculateGba0002(
       GBA0002_CRANKING_TIME_S,
     );
     if (upgrade) {
+      const upgradeK = lookupKFactorStrict(upgrade.cableType, db.copperKFactors);
       const upgradeThermal = computeCableThermalWithstandTimeS(
-        upgrade.kFactor ?? kFactor,
+        upgradeK ?? kFactor,
         upgrade.sizeMm2,
         crankingA,
       );
@@ -349,7 +392,10 @@ export function calculateGba0002(
         upResistance !== null
           ? computeMaxAllowableOneWayLengthM(maxVoltageDropV, crankingA, upResistance)
           : null;
-      const opPass = operatingTempOk(inputs.operatingTempC, upgrade.maxConductorTempC);
+      const opPass = temperatureSupported(
+        inputs.operatingTempC,
+        parseTemperatureLimit(upgrade.maxConductorTempC),
+      ) === true;
       cableResult = {
         recommendationStatus: "upgraded",
         cableType: `${upgrade.cableType} · ${upgrade.insulationType}`,
@@ -407,6 +453,7 @@ export function calculateGba0002(
           crankingA,
           inputs.safetyFactorPercent,
           GBA0002_CRANKING_TIME_S,
+          inputs.operatingTempC,
         );
 
   lineItems.push(
@@ -423,6 +470,8 @@ export function calculateGba0002(
   const statuses = [
     maxVoltageDropV > 0 ? "pass" : "fail",
     thermalPass ? "pass" : "fail",
+    currentPass ? "pass" : "fail",
+    cableTempOk === true ? "pass" : cableTempOk === null ? "warning" : "fail",
     cableResult.recommendationStatus === "unsuitable" ? "fail" : "pass",
     fuseResult.fusePass ? "pass" : "fail",
   ];
