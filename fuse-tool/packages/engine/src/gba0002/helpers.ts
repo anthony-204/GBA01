@@ -4,6 +4,9 @@
 
 import type { CopperKFactorRow } from "../types.js";
 import { lookupKFactor } from "../lookups.js";
+import { computeCablePeakCapabilityA } from "../cableChecks.js";
+
+export { computeCablePeakCapabilityA };
 
 export type PrototypeStatus = "PASS" | "FAIL" | "DATA MISSING" | "ENGINEERING REVIEW REQUIRED";
 
@@ -60,4 +63,14 @@ export function formatCableDisplay(
 
 export function requiredFuseCurrentA(alternatorA: number, safetyFactorPercent: number): number {
   return alternatorA * (1 + safetyFactorPercent / 100);
+}
+
+/** Equivalent to (k×S/I)² ≥ crankingTimeS — PDF §7 peak capability form. */
+export function cableThermalWithstandPass(
+  k: number,
+  sizeMm2: number,
+  crankingCurrentA: number,
+  crankingTimeS: number,
+): boolean {
+  return crankingCurrentA <= computeCablePeakCapabilityA(k, sizeMm2, crankingTimeS);
 }

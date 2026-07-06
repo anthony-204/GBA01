@@ -8,8 +8,12 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   calculateGba0002,
+  cableThermalWithstandPass,
+  computeCablePeakCapabilityA,
+  computeCableThermalWithstandTimeS,
   filterClientMachines,
   GBA0002_CLIENT_MACHINE_IDS,
+  GBA0002_CRANKING_TIME_S,
   GBA0002_MIN_STARTER_VOLTAGE_V,
   loadDatabase,
 } from "../src/index.js";
@@ -55,5 +59,12 @@ describe("GBA-0002 prototype", () => {
     expect(result.derived.maxAllowableVoltageDropV).toBe(
       valid.batteryVoltageDuringCrankingV - GBA0002_MIN_STARTER_VOLTAGE_V,
     );
+  });
+
+  it("thermal peak capability matches (k×S/I)² check", () => {
+    const t = computeCableThermalWithstandTimeS(143, 70, 200);
+    expect(t).toBeGreaterThanOrEqual(GBA0002_CRANKING_TIME_S);
+    expect(cableThermalWithstandPass(143, 70, 200, GBA0002_CRANKING_TIME_S)).toBe(true);
+    expect(200).toBeLessThanOrEqual(computeCablePeakCapabilityA(143, 70, GBA0002_CRANKING_TIME_S));
   });
 });

@@ -18,6 +18,7 @@ import {
   GBA0002_SAFETY_FACTOR_OPTIONS,
 } from "./constants.js";
 import {
+  cableThermalWithstandPass,
   formatCableDisplay,
   lookupKFactorStrict,
   parseTemperatureLimit,
@@ -226,7 +227,12 @@ export function calculateGba0002(
   }
 
   const thermalTime = computeCableThermalWithstandTimeS(kFactor, cableSize, crankingA);
-  const thermalPass = thermalTime >= GBA0002_CRANKING_TIME_S;
+  const thermalPass = cableThermalWithstandPass(
+    kFactor,
+    cableSize,
+    crankingA,
+    GBA0002_CRANKING_TIME_S,
+  );
   const currentPass = existingCableCont !== null && existingCableCont >= alternatorA;
   const cableTempOk = temperatureSupported(inputs.operatingTempC, machineTempLimit);
   if (cableTempOk === null) {

@@ -3,5 +3,19 @@
 @import "tailwindcss/utilities";
 
 body {
-  @apply bg-slate-950 text-slate-100 antialiased;
+  @apply bg-white text-black antialiased;
+}
+
+input,
+select,
+textarea,
+button {
+  color: #000;
+  background-color: #fff;
+}
+
+table,
+td,
+th {
+  color: #000;
 }
