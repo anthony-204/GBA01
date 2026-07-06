@@ -1,5 +1,5 @@
 /**
- * GBA-0002 client v0 — minimal calculation (no trace line items).
+ * GBA-0002 prototype calculator — GBA-0002 PDF + prototype functionality spec.
  */
 
 import type { CableCapacityRow, FuseToolDatabase, MachineRecord } from "../types.js";
@@ -7,7 +7,6 @@ import { parseNumber } from "../parseValue.js";
 import {
   findMachine,
   findFuseRecord,
-  lookupKFactor,
   lookupCableResistance,
   lookupWithstandTimeS,
   sortedFuseRatingOptions,
@@ -16,7 +15,16 @@ import {
   GBA0002_CLIENT_MACHINE_IDS,
   GBA0002_CRANKING_TIME_S,
   GBA0002_MIN_STARTER_VOLTAGE_V,
+  GBA0002_SAFETY_FACTOR_OPTIONS,
 } from "./constants.js";
+import {
+  formatCableDisplay,
+  lookupKFactorStrict,
+  parseTemperatureLimit,
+  requiredFuseCurrentA,
+  temperatureSupported,
+  type PrototypeStatus,
+} from "./helpers.js";
 import type {
   Gba0002CableResult,
   Gba0002DerivedParameters,
@@ -24,6 +32,8 @@ import type {
   Gba0002Result,
   Gba0002UserInputs,
 } from "./types.js";
+
+export { GBA0002_SAFETY_FACTOR_OPTIONS };
 
 export function filterClientMachines(machines: MachineRecord[]): MachineRecord[] {
   return GBA0002_CLIENT_MACHINE_IDS.map(
@@ -50,7 +60,7 @@ export function computeMaxAllowableOneWayLengthM(
   return (maxVoltageDropV * 1000) / (crankingCurrentA * 2 * resistanceOhmPerKm);
 }
 
-function findUpgradeCable(
+function findReplacementCable(
   db: FuseToolDatabase,
   crankingA: number,
   alternatorA: number,
@@ -58,14 +68,14 @@ function findUpgradeCable(
 ): CableCapacityRow | null {
   const candidates = db.cableCapacity
     .filter((row) => {
-      const k = row.kFactor ?? db.constants.defaultKFactorCopper;
+      const k = lookupKFactorStrict(row.cableType, db.copperKFactors);
+      if (k === null) return false;
       const thermal = computeCableThermalWithstandTimeS(k, row.sizeMm2, crankingA);
-      const maxT = parseNumber(row.maxConductorTempC);
-      return (
-        thermal >= GBA0002_CRANKING_TIME_S &&
-        row.continuousCurrentA >= alternatorA &&
-        (maxT === null || operatingTempC <= maxT)
-      );
+      if (thermal < GBA0002_CRANKING_TIME_S) return false;
+      if (row.continuousCurrentA < alternatorA) return false;
+      const temp = parseTemperatureLimit(row.maxConductorTempC);
+      const tempOk = temperatureSupported(operatingTempC, temp);
+      return tempOk === true;
     })
     .sort((a, b) => a.sizeMm2 - b.sizeMm2);
   return candidates[0] ?? null;
@@ -73,52 +83,58 @@ function findUpgradeCable(
 
 function selectFuse(
   db: FuseToolDatabase,
-  alternatorA: number,
   cableRatingA: number,
+  requiredFuseA: number,
   inrushA: number,
-  safetyFactorPercent: number,
+  operatingTempC: number,
 ): Gba0002FuseResult {
-  const options = sortedFuseRatingOptions(db.fuseLibrary);
-  const minTarget = alternatorA * (1 + safetyFactorPercent / 100);
+  for (const rating of sortedFuseRatingOptions(db.fuseLibrary)) {
+    if (rating > cableRatingA) continue;
+    if (rating < requiredFuseA - 0.01) continue;
 
-  for (const rating of options) {
-    if (rating < alternatorA || rating > cableRatingA || rating < minTarget - 0.01) continue;
     const fuse = findFuseRecord(rating, inrushA, db.fuseLibrary);
+    if (!fuse) continue;
+
     const withstand = lookupWithstandTimeS(inrushA, rating, db.mega32vCurve, fuse);
-    if (withstand !== null && withstand >= GBA0002_CRANKING_TIME_S && fuse) {
-      return {
-        suggestedFuseSizeA: rating,
-        fuseMakeModel: [fuse.manufacturer, fuse.description].filter(Boolean).join(" · ") || null,
-        fusePartNumber: fuse.manufacturerPartNumber ?? null,
-        fuseOperatingTempC: fuse.temperatureRangeC ?? null,
-        fuseOperatingTempPass: true,
-        withstandTimeS: withstand,
-        fusePass: true,
-        message: `Fuse ${rating} A`,
-        selectedFuse: fuse,
-      };
-    }
+    if (withstand === null || withstand < GBA0002_CRANKING_TIME_S) continue;
+
+    const fuseTemp = parseTemperatureLimit(fuse.temperatureRangeC);
+    const fuseTempOk = temperatureSupported(operatingTempC, fuseTemp);
+    if (fuseTempOk !== true) continue;
+
+    return {
+      suggestedFuseSizeA: rating,
+      fuseMakeModel: fuse.manufacturer ?? null,
+      fusePartNumber: fuse.manufacturerPartNumber ?? null,
+      fuseOperatingTempC: fuse.temperatureRangeC ?? null,
+      fuseOperatingTempPass: true,
+      withstandTimeS: withstand,
+      fusePass: true,
+      message: `Fuse ${rating} A`,
+      selectedFuse: fuse,
+    };
   }
 
-  return failedFuse("No suitable fuse found.");
+  return failedFuse("No relevant fuse size found.");
 }
 
-function blockedResult(
+function failResult(
   inputs: Gba0002UserInputs,
-  reason: string,
+  statusLabel: PrototypeStatus,
+  summary: string,
+  derived: Gba0002DerivedParameters = emptyDerived(),
 ): Gba0002Result {
   return {
     modelId: inputs.modelId,
-    machineFound: false,
-    blocked: true,
-    blockReason: reason,
+    machineFound: statusLabel !== "DATA MISSING" || summary.includes("machine"),
+    blocked: statusLabel === "DATA MISSING",
+    blockReason: statusLabel === "DATA MISSING" ? summary : undefined,
+    statusLabel,
     inputs,
-    derived: emptyDerived(),
-    cable: unsuitableCable(reason),
-    fuse: failedFuse(reason),
-    lineItems: [],
-    overallStatus: "fail",
-    summary: reason,
+    derived,
+    cable: unsuitableCable(summary),
+    fuse: failedFuse(summary),
+    summary,
   };
 }
 
@@ -126,13 +142,32 @@ export function calculateGba0002(
   db: FuseToolDatabase,
   inputs: Gba0002UserInputs,
 ): Gba0002Result {
-  if (inputs.batteryVoltageDuringCrankingV <= 0 || !Number.isFinite(inputs.batteryVoltageDuringCrankingV)) {
-    return blockedResult(inputs, "Battery voltage must be a positive number.");
+  if (
+    !GBA0002_SAFETY_FACTOR_OPTIONS.includes(inputs.safetyFactorPercent) ||
+    !Number.isFinite(inputs.batteryVoltageDuringCrankingV) ||
+    !Number.isFinite(inputs.operatingTempC)
+  ) {
+    return failResult(inputs, "FAIL", "Invalid input — check safety factor, battery voltage, and temperature.");
+  }
+
+  if (inputs.batteryVoltageDuringCrankingV <= 0) {
+    return failResult(inputs, "FAIL", "Battery voltage during cranking must be positive.");
+  }
+
+  if (inputs.batteryVoltageDuringCrankingV > 36) {
+    return failResult(
+      inputs,
+      "ENGINEERING REVIEW REQUIRED",
+      "Battery voltage looks unrealistic for a 24 V starter circuit.",
+    );
   }
 
   const machine = findMachine(db, inputs.modelId);
-  if (!machine || !GBA0002_CLIENT_MACHINE_IDS.includes(machine.id as (typeof GBA0002_CLIENT_MACHINE_IDS)[number])) {
-    return blockedResult(inputs, "Select a machine from the client sample list.");
+  if (
+    !machine ||
+    !GBA0002_CLIENT_MACHINE_IDS.includes(machine.id as (typeof GBA0002_CLIENT_MACHINE_IDS)[number])
+  ) {
+    return failResult(inputs, "DATA MISSING", "Machine not found in local sample list.");
   }
 
   const crankingA = parseNumber(machine.peakCrankingCurrentA);
@@ -140,25 +175,74 @@ export function calculateGba0002(
   const cableSize = parseNumber(machine.cableSizeMm2);
   const cableType = (machine.cableType as string) ?? null;
   const existingCableCont = parseNumber(machine.cableContinuousA);
-  const machineOpTemp = parseNumber(machine.operatingTempC);
+  const machineTempLimit = parseTemperatureLimit(machine.operatingTempC);
 
-  if (crankingA === null || alternatorA === null || cableSize === null || !cableType) {
-    return blockedResult(inputs, "Incomplete machine data.");
+  if (
+    crankingA === null ||
+    crankingA <= 0 ||
+    alternatorA === null ||
+    alternatorA <= 0 ||
+    cableSize === null ||
+    !cableType
+  ) {
+    return failResult(inputs, "DATA MISSING", "Required machine data is missing from MachinesOnSite.");
   }
 
-  const kFactor = lookupKFactor(cableType, db.copperKFactors, db.constants.defaultKFactorCopper);
+  const kFactor = lookupKFactorStrict(cableType, db.copperKFactors);
+  if (kFactor === null) {
+    return failResult(
+      inputs,
+      "ENGINEERING REVIEW REQUIRED",
+      "K-factor not found for this cable type. Engineering review required.",
+      partialDerived({ cableTypePresent: cableType, starterCrankingCurrentA: crankingA, alternatorContinuousA: alternatorA }),
+    );
+  }
+
   const resistance =
     lookupCableResistance(cableSize, db.cableCapacity) ??
     parseNumber(db.cableCapacity.find((c) => c.sizeMm2 === cableSize)?.resistanceOhmPerKm);
+  if (resistance === null) {
+    return failResult(inputs, "DATA MISSING", "Cable resistance not found in Cable_Capacity.");
+  }
 
   const maxVoltageDropV = inputs.batteryVoltageDuringCrankingV - GBA0002_MIN_STARTER_VOLTAGE_V;
+  if (maxVoltageDropV <= 0) {
+    return failResult(
+      inputs,
+      "FAIL",
+      "Battery voltage during cranking is not high enough to maintain the minimum starter voltage.",
+      partialDerived({
+        maxAllowableVoltageDropV: maxVoltageDropV,
+        cableTypePresent: cableType,
+        kFactor,
+        existingCableSizeMm2: cableSize,
+        cableResistanceOhmPerKm: resistance,
+        starterCrankingCurrentA: crankingA,
+        alternatorContinuousA: alternatorA,
+        existingCableContinuousA: existingCableCont,
+        requiredFuseCurrentA: requiredFuseCurrentA(alternatorA, inputs.safetyFactorPercent),
+      }),
+    );
+  }
+
   const thermalTime = computeCableThermalWithstandTimeS(kFactor, cableSize, crankingA);
   const thermalPass = thermalTime >= GBA0002_CRANKING_TIME_S;
+  const currentPass = existingCableCont !== null && existingCableCont >= alternatorA;
+  const cableTempOk = temperatureSupported(inputs.operatingTempC, machineTempLimit);
+  if (cableTempOk === null) {
+    return failResult(
+      inputs,
+      "ENGINEERING REVIEW REQUIRED",
+      "Cable temperature rating could not be interpreted. Engineering review required.",
+    );
+  }
 
+  const reqFuseA = requiredFuseCurrentA(alternatorA, inputs.safetyFactorPercent);
   const derived: Gba0002DerivedParameters = {
     minStarterVoltageV: GBA0002_MIN_STARTER_VOLTAGE_V,
     crankingTimeS: GBA0002_CRANKING_TIME_S,
     maxAllowableVoltageDropV: maxVoltageDropV,
+    requiredFuseCurrentA: reqFuseA,
     existingCableSizeMm2: cableSize,
     cableResistanceOhmPerKm: resistance,
     starterCrankingCurrentA: crankingA,
@@ -169,81 +253,92 @@ export function calculateGba0002(
   };
 
   let cableResult: Gba0002CableResult;
+  const existingOk = thermalPass && currentPass && cableTempOk;
 
-  if (thermalPass && maxVoltageDropV > 0) {
-    const maxLen =
-      resistance !== null
-        ? computeMaxAllowableOneWayLengthM(maxVoltageDropV, crankingA, resistance)
-        : null;
+  if (existingOk) {
+    const maxLen = computeMaxAllowableOneWayLengthM(maxVoltageDropV, crankingA, resistance);
     cableResult = {
       recommendationStatus: "no-change",
       cableType,
       cableSizeMm2: cableSize,
       cableCurrentRatingA: existingCableCont,
-      cableThermalWithstandTimeS: thermalTime,
+      cableThermalWithstandTimeS: round2(thermalTime),
       thermalWithstandPass: true,
       maxAllowableOneWayLengthM: maxLen !== null ? round2(maxLen) : null,
-      operatingTempRangeC: machineOpTemp !== null ? `Up to ${machineOpTemp}°C` : null,
-      operatingTempPass: machineOpTemp === null || inputs.operatingTempC <= machineOpTemp,
-      message: "No cable change required.",
+      operatingTempRangeC: String(machine.operatingTempC ?? "—"),
+      operatingTempPass: true,
+      message: formatCableDisplay("no-change", cableType, cableSize),
     };
   } else {
-    const upgrade = findUpgradeCable(db, crankingA, alternatorA, inputs.operatingTempC);
+    const upgrade = findReplacementCable(db, crankingA, alternatorA, inputs.operatingTempC);
     if (upgrade) {
-      const upR = parseNumber(upgrade.resistanceOhmPerKm);
-      const maxLen =
-        upR !== null && maxVoltageDropV > 0
-          ? computeMaxAllowableOneWayLengthM(maxVoltageDropV, crankingA, upR)
-          : null;
+      const upK = lookupKFactorStrict(upgrade.cableType, db.copperKFactors);
+      const upR = parseNumber(upgrade.resistanceOhmPerKm) ?? resistance;
+      const upThermal = upK
+        ? computeCableThermalWithstandTimeS(upK, upgrade.sizeMm2, crankingA)
+        : 0;
+      const maxLen = computeMaxAllowableOneWayLengthM(maxVoltageDropV, crankingA, upR);
       cableResult = {
         recommendationStatus: "upgraded",
-        cableType: `${upgrade.cableType} · ${upgrade.insulationType}`,
+        cableType: upgrade.cableType,
         cableSizeMm2: upgrade.sizeMm2,
         cableCurrentRatingA: upgrade.continuousCurrentA,
-        cableThermalWithstandTimeS: computeCableThermalWithstandTimeS(
-          upgrade.kFactor ?? kFactor,
-          upgrade.sizeMm2,
-          crankingA,
-        ),
-        thermalWithstandPass: true,
+        cableThermalWithstandTimeS: round2(upThermal),
+        thermalWithstandPass: upThermal >= GBA0002_CRANKING_TIME_S,
         maxAllowableOneWayLengthM: maxLen !== null ? round2(maxLen) : null,
-        operatingTempRangeC:
-          upgrade.maxConductorTempC != null ? `Up to ${upgrade.maxConductorTempC}°C` : null,
-        operatingTempPass:
-          upgrade.maxConductorTempC == null ||
-          inputs.operatingTempC <= upgrade.maxConductorTempC,
-        message: `Upgrade to ${upgrade.sizeMm2} mm².`,
+        operatingTempRangeC: String(upgrade.maxConductorTempC ?? "—"),
+        operatingTempPass: true,
+        message: formatCableDisplay("upgraded", upgrade.cableType, upgrade.sizeMm2),
       };
     } else {
-      cableResult = unsuitableCable("Existing cable is not suitable.");
+      cableResult = {
+        ...unsuitableCable(
+          "Existing cable is not suitable. An appropriate fit needs to be determined.",
+        ),
+        cableThermalWithstandTimeS: round2(thermalTime),
+        thermalWithstandPass: thermalPass,
+      };
     }
   }
 
-  const cableRating = cableResult.cableCurrentRatingA ?? existingCableCont ?? 0;
-  const fuseResult =
-    cableResult.recommendationStatus === "unsuitable" || cableRating <= 0
-      ? failedFuse("Cable recommendation required.")
-      : selectFuse(db, alternatorA, cableRating, crankingA, inputs.safetyFactorPercent);
+  if (cableResult.recommendationStatus === "unsuitable") {
+    return {
+      modelId: inputs.modelId,
+      machineFound: true,
+      blocked: false,
+      statusLabel: "FAIL",
+      inputs,
+      derived,
+      cable: cableResult,
+      fuse: failedFuse("Cable recommendation required before fuse selection."),
+      summary: cableResult.message,
+    };
+  }
 
-  const ok =
-    maxVoltageDropV > 0 &&
-    thermalPass &&
-    cableResult.recommendationStatus !== "unsuitable" &&
-    fuseResult.fusePass;
+  const cableRating = cableResult.cableCurrentRatingA ?? 0;
+  const fuseResult = selectFuse(db, cableRating, reqFuseA, crankingA, inputs.operatingTempC);
 
+  const pass =
+    cableResult.operatingTempPass &&
+    fuseResult.fusePass &&
+    (cableResult.maxAllowableOneWayLengthM === null ||
+      cableResult.maxAllowableOneWayLengthM < 1000);
+
+  const statusLabel: PrototypeStatus = pass ? "PASS" : "FAIL";
   return {
     modelId: inputs.modelId,
     machineFound: true,
     blocked: false,
+    statusLabel,
     inputs,
     derived,
     cable: cableResult,
     fuse: fuseResult,
-    lineItems: [],
-    overallStatus: ok ? "pass" : "fail",
-    summary: ok
-      ? `Recommendation for ${machine.id} — engineering approval required.`
-      : `Checks failed for ${machine.id}.`,
+    summary: pass
+      ? "All required cable and fuse conditions are satisfied."
+      : fuseResult.fusePass
+        ? "A required condition failed."
+        : fuseResult.message,
   };
 }
 
@@ -251,11 +346,18 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+function partialDerived(
+  partial: Partial<Gba0002DerivedParameters>,
+): Gba0002DerivedParameters {
+  return { ...emptyDerived(), ...partial };
+}
+
 function emptyDerived(): Gba0002DerivedParameters {
   return {
     minStarterVoltageV: GBA0002_MIN_STARTER_VOLTAGE_V,
     crankingTimeS: GBA0002_CRANKING_TIME_S,
     maxAllowableVoltageDropV: 0,
+    requiredFuseCurrentA: null,
     existingCableSizeMm2: null,
     cableResistanceOhmPerKm: null,
     starterCrankingCurrentA: null,

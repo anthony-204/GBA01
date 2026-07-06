@@ -1,33 +1,35 @@
-# GBA-0002 Client v0 — Barebones Build
+# GBA-0002 Client v0 — Prototype Build
 
-**Branch:** `client/v0`
+**Branch:** `client/v0`  
+**Spec:** `gb_auto_prototype_functionality_spec.md` + GBA-0002 calculation guide
 
 ## Purpose
 
-Version 0 is the **smallest correct** implementation of the GBA-0002 client calculation flow. It exists as a reference baseline before v1 UI polish and v2 validation guardrails.
+Minimal single-page prototype implementing the GBA-0002 simplified workflow: four user inputs, local data lookups, cable/fuse calculations, and required result fields.
 
-## What is included
+## Included
 
-- `packages/engine/src/gba0002/calculate.ts` — core cable thermal, voltage-drop length, and fuse selection logic
-- `apps/web/src/components/Gba0002Calculator.tsx` — four inputs, compact results (cable, length, fuse)
-- Three engine smoke tests in `packages/engine/tests/gba0002.test.ts`
+| Area | Location |
+|------|----------|
+| Calculator | `packages/engine/src/gba0002/calculate.ts` |
+| Helpers (K-factor, temperature) | `packages/engine/src/gba0002/helpers.ts` |
+| UI | `apps/web/src/components/Gba0002Calculator.tsx` |
+| Tests | `packages/engine/tests/gba0002.test.ts`, `docs/TEST_CASES.md` |
 
-## What is deliberately omitted
+## Calculation flow
 
-| Feature | v0 | v1 | v2 |
-|---------|----|----|-----|
-| PDF line-item trace | — | ✓ | ✓ |
-| Layered validation guardrails | — | — | ✓ |
-| Advanced safety-factor mode | — | — | ✓ |
-| Deploy / user-guide docs | minimal | full | full |
+1. Max voltage drop = battery V during cranking − 16 V  
+2. Cable resistance from `Cable_Capacity` by size  
+3. K-factor from `Copper_k_factor` by cable type (no default guess)  
+4. Thermal withstand \((k×S/I)²\) vs 5 s cranking time  
+5. Existing cable current rating vs alternator continuous current  
+6. Operating temperature vs cable and fuse ranges  
+7. Replacement cable search from `Cable_Capacity` when existing fails  
+8. Fuse: cable ≥ fuse ≥ alternator × (1 + safety factor), withstand ≥ 5 s  
 
-## Validation
+## Status labels
 
-v0 only enforces:
-
-- Positive finite battery voltage during cranking
-- Machine must be in the 9-vehicle client list
-- Standard GBA-0002 calculation pass/fail (no separate review layer)
+`PASS` · `FAIL` · `DATA MISSING` · `ENGINEERING REVIEW REQUIRED`
 
 ## Run
 
@@ -35,12 +37,12 @@ v0 only enforces:
 cd fuse-tool
 npm install
 npm test --workspace=@fuse-tool/engine -- gba0002
+npm run build
 npm run dev --workspace=@fuse-tool/web
 ```
 
-## Relationship to other branches
+## Omitted (see v1 / v2)
 
-- **`client/v1`** adds full calculation trace UI and client deliverable documentation.
-- **`client/v2`** adds the verification-report validation model on top of v1.
-
-v0 should be used when you need to verify **calculation correctness with minimal surface area**, not for field deployment without engineering oversight.
+- Polished production UI  
+- PDF export, auth, admin editor  
+- Full v2 validation guardrail layer  
