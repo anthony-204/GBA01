@@ -117,7 +117,7 @@ If we applied v0’s **same minimum data rules** to all **37** MachinesOnSite re
 | **T path** (as implemented) | **11** | B45E, 14M, 777 (07), 793F, 992K, D10T, D11, **120T /EX 1200-7**, **69T / ZX650H**, 155, 375 |
 | **Q path** (strict PDF line 9) | **9** | Same as current UI list only |
 
-**Using T instead of Q unlocks 2 additional machines:**
+**Using T instead of Q unlocks 2 additional machines in the database** — but they are **not in the v0 dropdown** because the nine IDs were **hardcoded** when the client deliverable was created from (a) **client-confirmed nine-machine scope** and (b) the **V2 completeness audit** (which requires column **Q** > 0), not from a “T-path calculable only” scan. v0 calculations use **T**, but the list was frozen using the stricter rule. See `DATA_REPORT.md` §4.5.
 
 | Machine | Why Q path fails | Why T path works |
 |---------|----------------|------------------|
@@ -126,7 +126,7 @@ If we applied v0’s **same minimum data rules** to all **37** MachinesOnSite re
 
 **Question:** Should the prototype sample list expand from 9 to **11** machines?
 
-Neither 120T nor 69T is in the current v0 UI dropdown.
+Neither 120T nor 69T is in the current v0 UI dropdown (allow-list in `GBA0002_CLIENT_MACHINE_IDS`).
 
 ---
 

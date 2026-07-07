@@ -12,8 +12,16 @@ export const GBA0002_CRANKING_TIME_S = 5;
 export const GBA0002_SAFETY_FACTOR_OPTIONS = [25, 50] as const;
 
 /**
- * Client-confirmed complete machine sample list (9 vehicles).
- * PDF sample list names D10T; fleet completeness audit yields nine records.
+ * Client sample fleet for GBA-0002 prototype (v0 / v1 / v2).
+ *
+ * **Why nine machines?** See fuse-tool/docs/DATA_REPORT.md §4.5 and
+ * docs/V0_MACHINE_PARAMETERS.md §“Why these nine machines”.
+ *
+ * Summary: (1) client confirmed a nine-machine sample scope; (2) these nine
+ * are the only rows that pass the V2 completeness gate (including column Q).
+ * v0 calculations use column T, so two additional machines (120T, 69T) could
+ * be added without code changes beyond this list — they were excluded when the
+ * list was frozen, not because 16 V or missing T data.
  */
 export const GBA0002_CLIENT_MACHINE_IDS = [
   "D10T",

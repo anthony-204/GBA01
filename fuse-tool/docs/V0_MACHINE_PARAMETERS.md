@@ -4,6 +4,26 @@
 **Source data:** `fuse-tool/data/machines.json` (imported from MachinesOnSite)  
 **Machines in UI:** 9 (see table below)
 
+---
+
+## Why these nine machines (and not eleven)
+
+The dropdown shows **nine** machines because of a **hardcoded allow-list** (`GBA0002_CLIENT_MACHINE_IDS`), not because only nine rows have calculation data.
+
+| Factor | What happened |
+|--------|----------------|
+| **Client scope** | When the GBA-0002 client deliverable was built, the client confirmed a **nine-machine sample** (PDF machine list names only **D10T**; nine slots total). |
+| **How the nine were chosen** | IDs were taken from the **V2 completeness audit** on the full fleet: machines that pass `assessVehicleCompleteness()` — including valid **column Q** (`peakCurrentCutoffA` > 0), column **T**, alternator, cable block, system voltage, etc. Exactly **nine** of 37 pass. |
+| **What v0 actually calculates with** | `calculateGba0002()` uses **column T** for cranking current, **not** Q. It does **not** require Q. |
+| **Why 120T and 69T are missing** | Both have **T** + cable data (GBA-calculable), but they **fail the V2/Q gate** (120T: Q = `#VALUE!`; 69T: Q = 0). They were never added to the allow-list when the nine were frozen. |
+| **16 V** | **Not** a filter. Sixteen volts is a **global constant** for max voltage drop (`battery V − 16`). It applies to all machines equally. |
+
+**Eleven** machines have enough fields for v0’s **T-path** calculation; **nine** are **V2-complete** (stricter). The UI still shows nine until the allow-list is expanded and the client agrees — see [`GBA0002_SPEC_CLARIFICATION_MEMO.md`](./GBA0002_SPEC_CLARIFICATION_MEMO.md) §2.
+
+Full history: [`DATA_REPORT.md`](./DATA_REPORT.md) §4.5.
+
+---
+
 This document lists **only** values that `calculateGba0002()` reads at runtime. Columns **Q**, **R**, and power-at-cutoff fields are **not** used by v0 but are shown in the reference section because the PDF spec refers to them.
 
 **Related:** [`V0_CALCULATIONS.md`](./V0_CALCULATIONS.md) · [`GBA0002_SPEC_CLARIFICATION_MEMO.md`](./GBA0002_SPEC_CLARIFICATION_MEMO.md) · Excel export: [`V0_MACHINE_PARAMETERS.xlsx`](./V0_MACHINE_PARAMETERS.xlsx)

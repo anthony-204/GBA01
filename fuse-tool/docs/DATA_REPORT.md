@@ -99,7 +99,7 @@ scripts/import_from_xlsx.py   ←  npm run import:data
 | `GBA0002_MIN_STARTER_VOLTAGE_V` | 16 V | GBA-0002 PDF |
 | `GBA0002_CRANKING_TIME_S` | 5 s | GBA-0002 PDF |
 | `GBA0002_SAFETY_FACTOR_OPTIONS` | 25%, 50% | GBA-0002 PDF user input |
-| `GBA0002_CLIENT_MACHINE_IDS` | 9 vehicle IDs | Client sample list + completeness audit |
+| `GBA0002_CLIENT_MACHINE_IDS` | 9 vehicle IDs | Fixed allow-list — see §4.5 (client nine-machine scope + V2 completeness, not GBA T-path scan) |
 
 Note: The full engineering tool (`main`) uses `constants.json` → `minBatteryVoltage24V: 16.48` for fleet checks; GBA-0002 client builds use the fixed **16 V** minimum starter voltage from the PDF.
 
@@ -255,9 +255,9 @@ Defined in `packages/engine/src/completeness.ts`. A vehicle is **complete** when
 | `electricalSystemV` | > 0 |
 | Cranking time | `crankingTimeMeasuredS` or `crankingTimeRequiredS` |
 
-### 4.2 Complete vehicles (9)
+### 4.2 Complete vehicles (9) — V2 gate
 
-These pass the V2 gate and form the GBA-0002 client sample (`GBA0002_CLIENT_MACHINE_IDS`):
+These pass the **V2 completeness gate** (`completeness.ts`), which requires **column Q** (`peakCurrentCutoffA` > 0) as well as column **T** and the full cable block. This set was used to define `GBA0002_CLIENT_MACHINE_IDS` when the client deliverable branch was created.
 
 | ID | Manufacturer | Category |
 |----|--------------|----------|
@@ -270,6 +270,31 @@ These pass the V2 gate and form the GBA-0002 client sample (`GBA0002_CLIENT_MACH
 | D11 | Caterpillar | Dozer |
 | 155 / D155AX-6 | Komatsu | Dozer |
 | 375/ D375-5E0 | Komatsu | Dozer |
+
+### 4.5 Why exactly these nine are hardcoded in v0 (not eleven)
+
+The v0 dropdown is **not** generated from “all machines with enough data for `calculateGba0002`”. It is a **fixed allow-list** in `packages/engine/src/gba0002/constants.ts` (`GBA0002_CLIENT_MACHINE_IDS`). That list was set when the GBA-0002 **client deliverable** branch was first built, for two independent reasons:
+
+| Reason | Detail |
+|--------|--------|
+| **1. Client scope** | The client confirmed a **nine-machine sample** for the prototype (GBA-0002 PDF “Machine sample list” — only **D10T** is named; slots 2–9 are blank). The deliverable was scoped to **9**, not “all calculable rows”. |
+| **2. V2 completeness audit** | At branch creation, the nine IDs were taken from machines that pass **`assessVehicleCompleteness()`** on `main` — the **full engineering gate** requiring **Q** (`peakCurrentCutoffA` > 0), **T**, alternator, cable block, `electricalSystemV`, cranking time, etc. Exactly **nine** of 37 rows pass; those nine became the hardcoded list. |
+
+**Important distinction — this is not the same as the v0 calculation gate:**
+
+| Gate | What it checks | Count | Includes 120T / 69T? |
+|------|----------------|-------|----------------------|
+| **V2 complete** (used to **pick** the 9) | T + **Q** + full cable + system V + … | **9** | **No** — 120T has Q = `#VALUE!`; 69T has Q = 0 |
+| **GBA v0 calculable** (what the **engine** needs) | T + alternator + cable type/size + K/R lookups | **11** | **Yes** — both have column T and cable data |
+| **Hardcoded UI list** | Membership in `GBA0002_CLIENT_MACHINE_IDS` | **9** | **No** — unless IDs are added to the array |
+
+So: **v0 already uses column T for math**, but the **nine-machine list was frozen using the stricter V2/Q completeness rule and client “9 machines” scope** — not by re-scanning “who is GBA-calculable on T alone”. That is why **120T** and **69T** are viable for v0 calculations but absent from the dropdown.
+
+**16 V is not the reason.** The minimum starter voltage (16 V) is a **global constant** in v0 (`GBA0002_MIN_STARTER_VOLTAGE_V`) applied to every machine in the voltage-drop formula. It does not filter which machines appear in the list. Per-machine column N (cutoff voltage) is not read by v0.
+
+**Were eleven machines ever “complete” in the same sense?** No — only **nine** are V2-complete. **Eleven** have sufficient data for **GBA v0’s lighter requirements** (T-path). The two extra machines are **near-complete** on V2: they fail only on **Q** (and 120T also lacks `electricalSystemV` in the sheet).
+
+To expose 120T and 69T in v0: add their IDs to `GBA0002_CLIENT_MACHINE_IDS`, update tests/docs, and obtain client confirmation to expand beyond the original nine-machine scope (see `GBA0002_SPEC_CLARIFICATION_MEMO.md` §2).
 
 ### 4.3 Incomplete vehicles (28)
 
