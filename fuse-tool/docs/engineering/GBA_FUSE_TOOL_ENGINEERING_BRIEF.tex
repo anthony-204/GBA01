@@ -94,9 +94,12 @@ The web application automates these checks using fleet data and manufacturer lib
 \section{Version history}
 
 \begin{itemize}[noitemsep]
-  \item \textbf{Phase 1:} Library mode, core cable/fuse checks, Excel data migration, 12 unit tests.
-  \item \textbf{Version 2 (current):} Completeness gate, manual entry, GBA-0002 output panel, fuse-protects-cable check, 26 unit tests.
-  \item \textbf{Version 3 (planned):} Parallel fuses, admin UI, PDF export, installation derating.
+  \item \textbf{Phase 1 (\texttt{main}):} Library mode, core cable/fuse checks, Excel data migration.
+  \item \textbf{Engineering V2 (\texttt{main}):} Completeness gate, manual entry, full check cards, fuse-protects-cable.
+  \item \textbf{Client v0 (\texttt{client/v0}):} Minimal GBA-0002 prototype --- four user inputs, nine sample machines, \texttt{gba0002/} engine only in UI.
+  \item \textbf{Client v1 (\texttt{client/v1}):} Full GBA-0002 trace UI and client deliverable documentation.
+  \item \textbf{Client v2 (\texttt{client/v2}):} Client v1 plus layered input/output validation guardrails.
+  \item \textbf{Planned:} Parallel fuses, admin UI, PDF export, installation derating.
 \end{itemize}
 
 \section{Repository layout}
@@ -214,7 +217,7 @@ For short-duration cranking, copper conductors may carry current above continuou
 \end{equation}
 where:
 \begin{itemize}[noitemsep]
-  \item $K$ = copper constant (A$\cdot\sqrt{\mathrm{s}}$/mm$^2$) from \texttt{copper-k-factors.json} by cable type;
+  \item $K$ = copper constant (A$\cdot\sqrt{\mathrm{s}}$/mm$^2$) from \texttt{Copper\_K\_Factor} (column~A) matched by \textbf{cable type} from MachinesOnSite column~AD --- not by machine model;
   \item $S$ = conductor cross-section (mm$^2$);
   \item $t$ = cranking time used for the check (seconds).
 \end{itemize}
@@ -267,7 +270,21 @@ Voltage drop and percentage:
 \end{equation}
 $R_{\Omega/\mathrm{km}}$ is looked up from \texttt{cable-capacity.json} by cable size. $V_\mathrm{base}$ is system voltage or measured cranking voltage when available.
 
-\textbf{Pass/warning:} $\Delta V\% \leq$ voltage drop limit (default 3\%). Exceeding the limit yields \texttt{warning} in Version~2.
+\textbf{Pass/warning:} $\Delta V\% \leq$ voltage drop limit (default 3\%). Exceeding the limit yields \texttt{warning} in the full engineering tool (\texttt{main}).
+
+\subsection{Client GBA-0002 voltage budget (absolute volts)}
+
+The simplified client application (branches \texttt{client/v0}--\texttt{client/v2}) uses the user-entered \textbf{battery voltage during cranking} and a fixed minimum starter voltage of \textbf{16\,V}:
+\begin{equation}
+  \Delta V_\mathrm{max} = V_\mathrm{battery,cranking} - 16\,\mathrm{V}
+\end{equation}
+This is the voltage \emph{budget} available for cable loss (out and return) while maintaining at least 16\,V at the starter terminals. It is not a percentage drop. See \texttt{docs/GBA0002\_ENGINEERING\_THEORY.md} for the engineering rationale.
+
+Maximum one-way cable length from this budget:
+\begin{equation}
+  L_\mathrm{max} = \frac{\Delta V_\mathrm{max} \times 1000}{I_\mathrm{crank} \times 2 \times R_{\Omega/\mathrm{km}}}
+\end{equation}
+Implemented in \texttt{packages/engine/src/gba0002/calculate.ts}.
 
 \section{I\textsuperscript{2}t thermal energy}
 
@@ -445,6 +462,8 @@ As of Version~2, \textbf{9 of 37} fleet records are complete. Incomplete records
   \texttt{parseValue.ts} & Legacy Excel cell parsing (\texttt{\#VALUE!}, etc.) \\
   \texttt{types.ts} & Shared interfaces: \texttt{CheckResult}, \texttt{RecommendationResult} \\
   \texttt{catalog.ts} & \texttt{loadDatabase}, \texttt{listModelIds} \\
+  \texttt{gba0002/calculate.ts} & Client GBA-0002: thermal $(kS/I)^2$, voltage budget, fuse selection \\
+  \texttt{gba0002/helpers.ts} & Strict $K$-factor by cable type; temperature range parsing \\
   \texttt{recommendLegacyNotes.ts} & Documented fixes vs Excel/MATLAB \\
   \bottomrule
 \end{longtable}
@@ -476,13 +495,18 @@ Legacy wrapper: \texttt{recommend(db, \{ modelId \})} $\rightarrow$ library mode
 
 \section{Web application structure}
 
+\textbf{Full engineering tool (\texttt{main}):}
 \begin{itemize}[noitemsep]
-  \item \texttt{Calculator.tsx} --- mode tabs, library picker, triggers \texttt{calculate()}
-  \item \texttt{ManualEntryForm.tsx} --- validated manual inputs
-  \item \texttt{PdfResultsPanel.tsx} --- GBA-0002 required outputs
-  \item \texttt{IncompleteVehiclePanel.tsx} --- blocked vehicle messaging
-  \item \texttt{CheckCard.tsx} --- expandable check details
-  \item \texttt{lib/db.ts} --- loads \texttt{bundle.json} into engine
+  \item \texttt{Calculator.tsx} --- library and manual entry modes
+  \item \texttt{ManualEntryForm.tsx}, \texttt{CheckCard.tsx}, \texttt{PdfResultsPanel.tsx}
+  \item \texttt{lib/db.ts} --- loads \texttt{bundle.json}
+\end{itemize}
+
+\textbf{Client GBA-0002 deliverable (\texttt{client/v0}--\texttt{client/v2}):}
+\begin{itemize}[noitemsep]
+  \item \texttt{Gba0002Calculator.tsx} --- four inputs (safety factor, machine, battery $V$, temperature), Calculate button, results table
+  \item \texttt{packages/engine/src/gba0002/} --- \texttt{calculate.ts}, \texttt{helpers.ts} (strict $K$-factor lookup, temperature parsing)
+  \item v0: minimal UI and docs only; v1: calculation trace; v2: validation guardrails
 \end{itemize}
 
 The UI never implements formulas; it only displays engine output. This allows CLI testing, future mobile apps, and API deployment without duplicating logic.
@@ -517,7 +541,7 @@ Tests load real JSON from \texttt{data/} --- no mocked cable/fuse tables --- ens
     EX-02 & G31 compared cutoff to capability & Compare $I_\mathrm{crank}$ to $I_\mathrm{allow}$ \\
     EX-03 & G19 compared strings to voltage & Compare $V_\mathrm{crank}$ to $V_\mathrm{min}$ \\
     ML-01 & MATLAB truncated columns A:X & Full machine JSON \\
-    ML-03 & Hard-coded $K=143$ & Lookup table + override \\
+    ML-03 & Hard-coded $K=143$ & Lookup by cable type (AD$\rightarrow$Copper\_K\_Factor); client branches block if missing \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -528,13 +552,17 @@ Full register: \texttt{docs/LEGACY\_BUGS\_FIXED.md}.
 \chapter{GBA-0002 compliance matrix}
 %=============================================================================
 
-\begin{longtable}{@{}p{5.5cm}ccp{4cm}@{}}
+\begin{longtable}{@{}p{5.2cm}ccp{4cm}@{}}
   \toprule
-  \textbf{Requirement} & \textbf{V2} & \textbf{V3+} & \textbf{Notes} \\
+  \textbf{Requirement} & \textbf{Main / Client} & \textbf{Planned} & \textbf{Notes} \\
   \midrule
   \endhead
-  Machine library selection & \checkmark & & 37 vehicles \\
-  Manual entry mode & \checkmark & & Validated inputs \\
+  Machine library selection & \checkmark & & Main: 37 vehicles; client: 9 sample \\
+  Manual entry mode & \checkmark & & Main only \\
+  Client four-input GBA-0002 UI & \checkmark & & \texttt{client/v0}--\texttt{v2} \\
+  Voltage drop (\% limit) & \checkmark & & Main \\
+  Voltage budget ($V_\mathrm{bat}-16$\,V) & \checkmark & & Client GBA-0002 \\
+  $K$-factor by cable type (strict) & \checkmark & & Client; main uses lookup + fallbacks \\
   Battery voltage / time checks & \checkmark & & When data present \\
   Starter cranking limit & \checkmark & & \\
   Cable continuous \& inrush & \checkmark & & No derating \\
@@ -567,7 +595,7 @@ This chapter helps engineers respond accurately to the client (GB Auto / fleet o
 
 \begin{quote}
 \small
-We have delivered \textbf{Version~2} of the Fuse and Cable Protection web application per specification GBA-0002. The tool analyses 24\,V machine starting circuits---battery, cable, starter, and fuse---using your fleet database and manufacturer fuse/cable libraries. It provides pass/fail engineering checks, suggested fuse ratings with part numbers, and a standardized cable/fuse output summary. The application runs in a standard web browser, is mobile-friendly, and separates calculation logic from the user interface for maintainability and testing. \textbf{26 automated tests} verify core calculations. The tool is a \textbf{design aid}; final selections require qualified engineering review before installation.
+We have delivered the Fuse and Cable Protection web application per specification GBA-0002 in several branches: a \textbf{minimal client prototype} (\texttt{client/v0}), a \textbf{client deliverable with full calculation trace} (\texttt{client/v1}), and a \textbf{validated client build} with input guardrails (\texttt{client/v2}), alongside the full \textbf{engineering tool} on \texttt{main} (37-vehicle library, manual entry, completeness gate). All analyse 24\,V starting circuits using fleet data and manufacturer libraries. Outputs are design aids; final selections require qualified engineering review.
 \end{quote}
 
 \section{What we delivered}

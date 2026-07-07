@@ -3,7 +3,7 @@
  *
  * These types mirror the normalized JSON exported from Fuse_GUI_APP.xlsx.
  * Field names use camelCase; Excel typos (e.g. "Manufcturer") are corrected
- * at import time — see scripts/import_from_xlsx.py and docs/DATA_MIGRATION.md.
+ * at import time — see scripts/import_from_xlsx.py and docs/DATA_REPORT.md.
  */
 
 /** Parsed numeric or sentinel string from legacy Excel cells */

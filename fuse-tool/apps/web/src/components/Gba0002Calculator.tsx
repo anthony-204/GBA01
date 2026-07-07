@@ -4,8 +4,6 @@ import { useMemo, useState, type CSSProperties } from "react";
 import {
   calculateGba0002,
   filterClientMachines,
-  GBA0002_CRANKING_TIME_S,
-  GBA0002_MIN_STARTER_VOLTAGE_V,
   GBA0002_SAFETY_FACTOR_OPTIONS,
   type Gba0002Result,
 } from "@fuse-tool/engine";
@@ -57,10 +55,6 @@ export function Gba0002Calculator() {
   return (
     <div style={pageStyle}>
       <h1 style={{ fontSize: 20, color: "#000" }}>GB Auto Fuse &amp; Cable Prototype</h1>
-      <p style={{ fontSize: 13, color: "#000" }}>
-        Fixed assumptions: minimum starter voltage = {GBA0002_MIN_STARTER_VOLTAGE_V} V, cranking time ={" "}
-        {GBA0002_CRANKING_TIME_S} s. Max voltage drop = battery V during cranking − 16 V (see docs).
-      </p>
 
       <div style={{ border: "1px solid #999", padding: 12, marginTop: 12, backgroundColor: "#fff" }}>
         <p style={{ margin: "0 0 8px", fontWeight: "bold", color: "#000" }}>User inputs</p>

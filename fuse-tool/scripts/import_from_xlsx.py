@@ -6,7 +6,7 @@ Reads Fuse_GUI_APP.xlsx and writes typed JSON files to fuse-tool/data/.
 Run from repo root:  python scripts/import_from_xlsx.py
 
 Column names are normalized (trimmed, line breaks removed) to fix Excel
-inconsistent naming. See docs/DATA_MIGRATION.md for field mappings.
+inconsistent naming. See docs/DATA_REPORT.md for field mappings.
 """
 
 from __future__ import annotations

@@ -28,6 +28,6 @@ pdflatex -interaction=nonstopmode GBA_FUSE_TOOL_ENGINEERING_BRIEF.tex
 - Software engineers — module map, API, tests, UI boundaries
 - Project leads — Chapter 6 client communication templates
 
-For end-user instructions see [`../USER_GUIDE.md`](../USER_GUIDE.md).
+For end-user instructions see [`../CLIENT_V0.md`](../CLIENT_V0.md) (client/v0) or [`../USER_GUIDE.md`](../USER_GUIDE.md) on main / client/v1–v2.
 
 For project status vs GBA-0002 see Chapter 5 (compliance matrix) and Chapter 6 (client communication) in the brief.

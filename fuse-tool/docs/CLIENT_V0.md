@@ -5,31 +5,24 @@
 
 ## Purpose
 
-Minimal single-page prototype implementing the GBA-0002 simplified workflow: four user inputs, local data lookups, cable/fuse calculations, and required result fields.
+Minimal single-page prototype: four user inputs, nine sample machines, local lookups, cable/fuse results.
 
-**Engineering theory** (including why max voltage drop = battery V − 16 V): see [`GBA0002_ENGINEERING_THEORY.md`](./GBA0002_ENGINEERING_THEORY.md).
+**Theory:** [`GBA0002_ENGINEERING_THEORY.md`](./GBA0002_ENGINEERING_THEORY.md) · **Data:** [`DATA_REPORT.md`](./DATA_REPORT.md) · **LaTeX brief:** [`engineering/GBA_FUSE_TOOL_ENGINEERING_BRIEF.tex`](./engineering/GBA_FUSE_TOOL_ENGINEERING_BRIEF.tex)
 
-## Included
+## Code layout (v0 only)
 
-| Area | Location |
-|------|----------|
-| Calculator | `packages/engine/src/gba0002/calculate.ts` |
-| Helpers (K-factor by cable type, temperature) | `packages/engine/src/gba0002/helpers.ts` |
-| UI | `apps/web/src/components/Gba0002Calculator.tsx` |
-| Tests | `packages/engine/tests/gba0002.test.ts`, `docs/TEST_CASES.md` |
+```
+apps/web/src/
+  app/page.tsx              → Gba0002Calculator
+  components/Gba0002Calculator.tsx
+  lib/db.ts
+packages/engine/src/gba0002/
+  calculate.ts, helpers.ts, constants.ts, types.ts
+docs/
+  CLIENT_V0.md, DATA_REPORT.md, GBA0002_ENGINEERING_THEORY.md, TEST_CASES.md
+```
 
-## Key calculation rules (PDF update)
-
-| Rule | Implementation |
-|------|----------------|
-| K-factor | Cable type (MachinesOnSite AD) → Copper_k_factor A:B — **not** machine model |
-| Thermal pass | `(k×S/I)² ≥ 5 s` ⟺ `I ≤ k×S/√5` |
-| Voltage drop budget | `battery V during cranking − 16 V` |
-| Fuse | `cable ≥ fuse ≥ alternator × (1 + safety%)` + withstand + temperature |
-
-## Status labels
-
-`PASS` · `FAIL` · `DATA MISSING` · `ENGINEERING REVIEW REQUIRED`
+Full-engineering UI (`Calculator.tsx`, `ManualEntryForm.tsx`, etc.) and main-branch docs are **not** included on this branch.
 
 ## Run
 
@@ -41,8 +34,8 @@ npm run build
 npm run dev --workspace=@fuse-tool/web
 ```
 
-## Omitted (see v1 / v2)
+## See also
 
-- Polished production UI  
-- PDF export, auth, admin editor  
-- Full v2 validation guardrail layer  
+- **`client/v1`** — trace UI + client deliverable docs  
+- **`client/v2`** — validation guardrails  
+- **`main`** — full 37-vehicle engineering tool  
