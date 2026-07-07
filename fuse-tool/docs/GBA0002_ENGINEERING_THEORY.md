@@ -41,7 +41,7 @@ If `maximumAllowableVoltageDropV ≤ 0`, the measured battery voltage is already
 maxLengthM = (maximumAllowableVoltageDropV × 1000) / (I_crank × 2 × R_ohm_per_km)
 ```
 
-- **I_crank** — starter inrush / cranking current (MachinesOnSite column Q).
+- **I_crank** — starter current used in v0 for thermal and length checks. **PDF line 9 points to column Q**; **v0 uses column T** (`peakCrankingCurrentA`) — see [`V0_CALCULATIONS.md`](./V0_CALCULATIONS.md) §3 and [`GBA0002_SPEC_CLARIFICATION_MEMO.md`](./GBA0002_SPEC_CLARIFICATION_MEMO.md).
 - **R** — cable resistance (Ω/km) from Cable_Capacity for the selected size.
 - **× 1000** — converts km resistance to metres.
 - **× 2** — current travels **out and back** (positive and return conductors); total loop resistance is doubled.

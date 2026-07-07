@@ -7,7 +7,7 @@
 
 Minimal single-page prototype: four user inputs, nine sample machines, local lookups, cable/fuse results.
 
-**Theory:** [`GBA0002_ENGINEERING_THEORY.md`](./GBA0002_ENGINEERING_THEORY.md) · **Data:** [`DATA_REPORT.md`](./DATA_REPORT.md) · **LaTeX brief:** [`engineering/GBA_FUSE_TOOL_ENGINEERING_BRIEF.tex`](./engineering/GBA_FUSE_TOOL_ENGINEERING_BRIEF.tex)
+**Theory:** [`GBA0002_ENGINEERING_THEORY.md`](./GBA0002_ENGINEERING_THEORY.md) · **Calculations:** [`V0_CALCULATIONS.md`](./V0_CALCULATIONS.md) · **Machine data:** [`V0_MACHINE_PARAMETERS.md`](./V0_MACHINE_PARAMETERS.md) / [`.xlsx`](./V0_MACHINE_PARAMETERS.xlsx) · **Spec memo:** [`GBA0002_SPEC_CLARIFICATION_MEMO.md`](./GBA0002_SPEC_CLARIFICATION_MEMO.md) · **Data report:** [`DATA_REPORT.md`](./DATA_REPORT.md)
 
 ## Code layout (v0 only)
 
@@ -19,7 +19,8 @@ apps/web/src/
 packages/engine/src/gba0002/
   calculate.ts, helpers.ts, constants.ts, types.ts
 docs/
-  CLIENT_V0.md, DATA_REPORT.md, GBA0002_ENGINEERING_THEORY.md, TEST_CASES.md
+  CLIENT_V0.md, V0_CALCULATIONS.md, V0_MACHINE_PARAMETERS.md, GBA0002_SPEC_CLARIFICATION_MEMO.md,
+  GBA0002_ENGINEERING_THEORY.md, TEST_CASES.md, DATA_REPORT.md
 ```
 
 Full-engineering UI (`Calculator.tsx`, `ManualEntryForm.tsx`, etc.) and main-branch docs are **not** included on this branch.
