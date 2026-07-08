@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "import:data": "python scripts/import_from_xlsx.py",
+    "patch:machines-v1.1": "python scripts/patch_machines_client_v1_1.py",
     "build:engine": "npm run build -w @fuse-tool/engine",
     "test": "npm run test -w @fuse-tool/engine",
     "test:watch": "npm run test:watch -w @fuse-tool/engine",

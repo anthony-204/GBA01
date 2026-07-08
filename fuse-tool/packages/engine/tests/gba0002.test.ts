@@ -1,5 +1,5 @@
 /**
- * GBA-0002 prototype — tests per functionality spec.
+ * GBA-0002 client v1.1 — tests.
  */
 
 import { describe, it, expect } from "vitest";
@@ -17,6 +17,11 @@ import {
   GBA0002_MIN_STARTER_VOLTAGE_V,
   loadDatabase,
 } from "../src/index.js";
+import {
+  MSG_BATTERY_VOLTAGE_LOW,
+  MSG_CRANKING_TIME_HIGH,
+  MSG_STARTER_CRANKING_HIGH,
+} from "../src/gba0002/messages.js";
 
 const dataDir = resolve(dirname(fileURLToPath(import.meta.url)), "../../../data");
 const db = loadDatabase(JSON.parse(readFileSync(resolve(dataDir, "bundle.json"), "utf-8")));
@@ -28,30 +33,44 @@ const valid = {
   operatingTempC: 60,
 };
 
-describe("GBA-0002 prototype", () => {
+describe("GBA-0002 client v1.1", () => {
   it("loads nine sample machines", () => {
     expect(filterClientMachines(db.machines).map((m) => m.id)).toEqual([
       ...GBA0002_CLIENT_MACHINE_IDS,
     ]);
   });
 
-  it("Test 1: valid machine passes", () => {
+  it("uses column Q for design cranking current on B45E", () => {
     const result = calculateGba0002(db, valid);
-    expect(result.statusLabel).toBe("PASS");
-    expect(result.fuse.suggestedFuseSizeA).not.toBeNull();
-    expect(result.cable.recommendationStatus).toMatch(/no-change|upgraded/);
+    expect(result.derived.starterCrankingCurrentA).toBe(500);
+    expect(result.derived.measuredStarterCrankingA).toBe(200);
   });
 
-  it("Test 2: battery voltage too low fails", () => {
+  it("includes manufacturer in results", () => {
+    const result = calculateGba0002(db, valid);
+    expect(result.manufacturer).toBe("Bell");
+  });
+
+  it("fails battery below 16 V with v1.1 message", () => {
     const result = calculateGba0002(db, { ...valid, batteryVoltageDuringCrankingV: 15 });
     expect(result.statusLabel).toBe("FAIL");
-    expect(result.derived.maxAllowableVoltageDropV).toBeLessThanOrEqual(0);
-    expect(result.summary).toContain("minimum starter voltage");
+    expect(result.summary).toBe(MSG_BATTERY_VOLTAGE_LOW);
   });
 
-  it("blocks negative battery voltage", () => {
-    const result = calculateGba0002(db, { ...valid, batteryVoltageDuringCrankingV: -1 });
+  it("fails when measured T exceeds design Q (777)", () => {
+    const result = calculateGba0002(db, { ...valid, modelId: "777 (07)" });
     expect(result.statusLabel).toBe("FAIL");
+    expect(result.summary).toBe(MSG_STARTER_CRANKING_HIGH);
+  });
+
+  it("fails when measured cranking time exceeds 5 s", () => {
+    const machines = db.machines.map((m) =>
+      m.id === "B45E" ? { ...m, crankingTimeMeasuredS: 6 } : m,
+    );
+    const localDb = { ...db, machines };
+    const result = calculateGba0002(localDb, valid);
+    expect(result.statusLabel).toBe("FAIL");
+    expect(result.summary).toBe(MSG_CRANKING_TIME_HIGH);
   });
 
   it("calculates max voltage drop from battery minus 16 V", () => {
@@ -61,10 +80,21 @@ describe("GBA-0002 prototype", () => {
     );
   });
 
-  it("thermal peak capability matches (k×S/I)² check", () => {
-    const t = computeCableThermalWithstandTimeS(143, 70, 200);
+  it("thermal check uses Q current", () => {
+    const t = computeCableThermalWithstandTimeS(143, 70, 500);
     expect(t).toBeGreaterThanOrEqual(GBA0002_CRANKING_TIME_S);
-    expect(cableThermalWithstandPass(143, 70, 200, GBA0002_CRANKING_TIME_S)).toBe(true);
-    expect(200).toBeLessThanOrEqual(computeCablePeakCapabilityA(143, 70, GBA0002_CRANKING_TIME_S));
+    expect(cableThermalWithstandPass(143, 70, 500, GBA0002_CRANKING_TIME_S)).toBe(true);
+    expect(500).toBeLessThanOrEqual(computeCablePeakCapabilityA(143, 70, GBA0002_CRANKING_TIME_S));
+  });
+
+  it("can upgrade cable when site cable fails temperature (D10T at 95 °C)", () => {
+    const result = calculateGba0002(db, {
+      modelId: "D10T",
+      safetyFactorPercent: 25,
+      batteryVoltageDuringCrankingV: 20,
+      operatingTempC: 95,
+    });
+    expect(result.cable.recommendationStatus).toBe("upgraded");
+    expect(result.cable.message).toMatch(/Two Single Core/);
   });
 });

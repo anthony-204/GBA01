@@ -46,7 +46,12 @@ export interface Gba0002DerivedParameters {
   requiredFuseCurrentA: number | null;
   existingCableSizeMm2: number | null;
   cableResistanceOhmPerKm: number | null;
+  /** Column Q — design / inrush worst-case current used for cable and fuse sizing (A). */
   starterCrankingCurrentA: number | null;
+  /** Column T — measured peak continuous cranking current (A). */
+  measuredStarterCrankingA: number | null;
+  /** Column X — measured cranking time (s). */
+  measuredCrankingTimeS: number | null;
   alternatorContinuousA: number | null;
   cableTypePresent: string | null;
   kFactor: number | null;
@@ -55,6 +60,7 @@ export interface Gba0002DerivedParameters {
 
 export interface Gba0002Result {
   modelId: string;
+  manufacturer: string | null;
   machineFound: boolean;
   blocked: boolean;
   blockReason?: string;

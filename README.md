@@ -22,55 +22,45 @@ GB Engineering/
 
 | Branch | Purpose | Audience |
 |--------|---------|----------|
-| **`main`** | Full **Version 2 engineering tool** — 37-vehicle fleet, library + manual entry tabs, completeness gate, PDF outputs, 26+ engine tests, numeric-input fixes | Internal engineering |
-| **`feature/excel-manual-presets`** | Manual-entry preset toggle — switch between app-default values and Excel column O presets | Engineering / QA |
-| **`client/v0`** | **Barebones client build** — correct GBA-0002 calculations with minimal UI and code; no trace panels or validation layers | Baseline / teaching / audit |
-| **`client/v1`** | **Client deliverable v1** — simplified GBA-0002 UI (9 machines, 4 inputs), full calculation trace, first client release | Client field trial |
-| **`client/v2`** | **Client deliverable v2** — v1 + layered input/output validation guardrails per verification report; Simple/Advanced safety-factor modes | Client production |
+| **`main`** | Full **Version 2 engineering tool** — 37-vehicle fleet, library + manual entry, completeness gate | Internal engineering |
+| **`feature/excel-manual-presets`** | Manual-entry Excel preset toggle | Engineering / QA |
+| **`client/v1`** | **Active client prototype** (app v1.1) — GBA-0002, 9 machines, 4 inputs, v1.1 checks, column Q sizing | Client / field trial |
+| **`client/old1`** | *Deprecated* — former `client/v1` (trace UI deliverable) | Archive |
+| **`client/old2`** | *Deprecated* — former `client/v2` (validation guardrails) | Archive |
+
+`client/v0` has been **renamed to `client/v1`** (July 2026). Deploy the client tool from **`client/v1`**.
 
 ### Which branch should I use?
 
-- **Field technicians (client):** deploy `client/v2` (or `client/v1` if validation UI is not yet required).
-- **Full fleet / manual what-if:** `main`.
-- **Excel parity testing:** `feature/excel-manual-presets`.
-- **Minimal reference implementation:** `client/v0`.
+- **Current GBA-0002 client prototype (v1.1):** `client/v1`
+- **Full fleet / manual what-if:** `main`
+- **Legacy trace UI or validation builds:** `client/old1`, `client/old2`
 
-## Quick start
+## Quick start (`client/v1`)
 
 ```bash
 cd fuse-tool
 npm install
+npm run patch:machines-v1.1
 npm run build
-npm test --workspace=@fuse-tool/engine
+npm test --workspace=@fuse-tool/engine -- gba0002
 npm run dev --workspace=@fuse-tool/web
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Deploy (client branches)
+### Deploy (Vercel)
 
-See `fuse-tool/docs/DEPLOY_VERCEL.md` — connect the Git branch (`client/v1` or `client/v2`) in the Vercel dashboard with root directory `fuse-tool/apps/web`.
+See `fuse-tool/docs/DEPLOY_VERCEL.md` — connect branch **`client/v1`**, root directory `fuse-tool/apps/web`.
 
-## Client version history
+## Client app version history
 
-### `client/v0` — barebones
+See `fuse-tool/docs/CHANGELOG.md`.
 
-Stripped from v1: core `calculateGba0002()` only, compact results panel, no line-item trace, no validation module. Documented in `fuse-tool/docs/CLIENT_V0.md`.
-
-### `client/v1` — first client deliverable
-
-Implements GBA-0002 revised PDF: 9-machine sample fleet, safety factor 25/50%, battery voltage during cranking, operating temperature. See `fuse-tool/docs/GBA0002_CLIENT_DELIVERABLE.md`.
-
-### `client/v2` — validation guardrails
-
-Addresses *Verification and Justification of Input Validation Guardrails*:
-
-- Hard blocks for impossible inputs (negative voltage, >1.5× system class, cranking >30 s, etc.)
-- Review warnings for abnormal but possible values
-- Output sanity checks (e.g. derived cable length >100 m withholds Pass)
-- Simple / Advanced safety-factor modes
-
-Full traceability matrix: `fuse-tool/docs/CLIENT_V2_VALIDATION_GUARDRAILS.md`.
+| App version | Date | Branch | Highlights |
+|-------------|------|--------|------------|
+| **1.1** | 14/07/2026 | `client/v1` | Column Q sizing; battery/starter/time checks; manufacturer; upgrade fix |
+| **1.0** | June 2026 | `client/v0` (renamed) | Initial nine-machine prototype |
 
 ## Disclaimer
 

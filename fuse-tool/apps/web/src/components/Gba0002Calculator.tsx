@@ -9,6 +9,30 @@ import {
 } from "@fuse-tool/engine";
 import { getDatabase } from "@/lib/db";
 
+const APP_VERSION = "1.1.0";
+
+const CHANGELOG: { version: string; date: string; items: string[] }[] = [
+  {
+    version: "1.0",
+    date: "June 2026",
+    items: [
+      "Initial GBA-0002 prototype: nine-machine sample, four user inputs.",
+      "Cable and fuse sizing from MachinesOnSite and library tables.",
+    ],
+  },
+  {
+    version: "1.1",
+    date: "14/07/2026",
+    items: [
+      "Client-confirmed sizing current: column Q (peak current cut off) replaces column T for cable/fuse calculations.",
+      "Version 1.1 checks: battery voltage vs 16 V minimum, measured cranking (T) vs limit (Q), measured cranking time (X) vs 5 s.",
+      "Database: 16 V cutoff assumed where blank; column Q derived from power and efficiency where missing.",
+      "Fixed cable upgrade (Condition 2) using Cable_Capacity k-factor on each row.",
+      "Results show manufacturer; output labels include units.",
+    ],
+  },
+];
+
 const fieldStyle: CSSProperties = {
   display: "block",
   width: "100%",
@@ -29,6 +53,24 @@ const pageStyle: CSSProperties = {
   minHeight: "100vh",
 };
 
+function formatLength(m: number | null | undefined): string {
+  if (m == null) return "—";
+  return `${m} m`;
+}
+
+function formatAmps(a: number | null | undefined): string {
+  if (a == null) return "—";
+  return `${a} A`;
+}
+
+function formatTemp(c: string | number | null | undefined): string {
+  if (c == null || c === "—") return "—";
+  const s = String(c);
+  if (s.includes("°C")) return s;
+  if (/^-?\d+(\.\d+)?$/.test(s.trim())) return `${s} °C`;
+  return s;
+}
+
 export function Gba0002Calculator() {
   const db = useMemo(() => getDatabase(), []);
   const machines = useMemo(() => filterClientMachines(db.machines), [db]);
@@ -38,6 +80,7 @@ export function Gba0002Calculator() {
   const [batteryV, setBatteryV] = useState("20");
   const [operatingTemp, setOperatingTemp] = useState("60");
   const [result, setResult] = useState<Gba0002Result | null>(null);
+  const [showChangelog, setShowChangelog] = useState(false);
 
   function runCalculate() {
     const battery = Number(batteryV);
@@ -52,9 +95,45 @@ export function Gba0002Calculator() {
     );
   }
 
+  const selectedMachine = machines.find((m) => m.id === modelId);
+
   return (
     <div style={pageStyle}>
-      <h1 style={{ fontSize: 20, color: "#000" }}>GB Auto Fuse &amp; Cable Prototype</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <h1 style={{ fontSize: 20, color: "#000", margin: 0 }}>GB Auto Fuse &amp; Cable Tool</h1>
+        <span style={{ fontSize: 12, color: "#444" }}>v{APP_VERSION}</span>
+      </div>
+      <button
+        type="button"
+        onClick={() => setShowChangelog((v) => !v)}
+        style={{
+          marginTop: 8,
+          padding: "4px 8px",
+          fontSize: 12,
+          border: "1px solid #999",
+          background: "#f5f5f5",
+          cursor: "pointer",
+        }}
+      >
+        {showChangelog ? "Hide" : "Show"} changelog
+      </button>
+      {showChangelog && (
+        <div style={{ marginTop: 8, padding: 10, border: "1px solid #ccc", fontSize: 13, background: "#fafafa" }}>
+          {CHANGELOG.map((entry) => (
+            <div key={entry.version} style={{ marginBottom: 10 }}>
+              <strong>
+                Version {entry.version}
+              </strong>{" "}
+              <span style={{ color: "#555" }}>({entry.date})</span>
+              <ul style={{ margin: "4px 0 0", paddingLeft: 18 }}>
+                {entry.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div style={{ border: "1px solid #999", padding: 12, marginTop: 12, backgroundColor: "#fff" }}>
         <p style={{ margin: "0 0 8px", fontWeight: "bold", color: "#000" }}>User inputs</p>
@@ -79,6 +158,7 @@ export function Gba0002Calculator() {
           <select value={modelId} onChange={(e) => setModelId(e.target.value)} style={fieldStyle}>
             {machines.map((m) => (
               <option key={m.id} value={m.id}>
+                {m.manufacturer ? `${m.manufacturer} — ` : ""}
                 {m.id}
               </option>
             ))}
@@ -115,6 +195,12 @@ export function Gba0002Calculator() {
             <p style={{ margin: 0 }}>
               <strong>Status:</strong> {result.statusLabel}
             </p>
+            <p style={{ margin: "8px 0 0" }}>
+              <strong>Manufacturer:</strong> {result.manufacturer ?? selectedMachine?.manufacturer ?? "—"}
+            </p>
+            <p style={{ margin: "8px 0 0" }}>
+              <strong>Model:</strong> {result.modelId}
+            </p>
             <p style={{ margin: "8px 0 0" }}>{result.summary}</p>
           </div>
 
@@ -136,20 +222,20 @@ export function Gba0002Calculator() {
                 <td>{result.cable.message}</td>
               </tr>
               <tr>
-                <td>Cable current rating (A)</td>
-                <td>{result.cable.cableCurrentRatingA ?? "—"}</td>
+                <td>Cable current rating</td>
+                <td>{formatAmps(result.cable.cableCurrentRatingA)}</td>
               </tr>
               <tr>
-                <td>Max one-way cable length (m)</td>
-                <td>{result.cable.maxAllowableOneWayLengthM ?? "—"}</td>
+                <td>Max one-way cable length</td>
+                <td>{formatLength(result.cable.maxAllowableOneWayLengthM)}</td>
               </tr>
               <tr>
                 <td>Cable operating temperature</td>
-                <td>{result.cable.operatingTempRangeC ?? "—"}</td>
+                <td>{formatTemp(result.cable.operatingTempRangeC)}</td>
               </tr>
               <tr>
-                <td>Suggested fuse size (A)</td>
-                <td>{result.fuse.suggestedFuseSizeA ?? "—"}</td>
+                <td>Suggested fuse size</td>
+                <td>{formatAmps(result.fuse.suggestedFuseSizeA)}</td>
               </tr>
               <tr>
                 <td>Fuse make and part number</td>
@@ -160,7 +246,7 @@ export function Gba0002Calculator() {
               </tr>
               <tr>
                 <td>Fuse operating temperature</td>
-                <td>{result.fuse.fuseOperatingTempC ?? "—"}</td>
+                <td>{formatTemp(result.fuse.fuseOperatingTempC)}</td>
               </tr>
             </tbody>
           </table>
@@ -177,12 +263,15 @@ export function Gba0002Calculator() {
             }}
           >
             {`Debug / details
-Machine: ${result.modelId}
+Manufacturer: ${result.manufacturer ?? "—"}
+Model: ${result.modelId}
+Design cranking current Q (A): ${result.derived.starterCrankingCurrentA ?? "—"}
+Measured cranking current T (A): ${result.derived.measuredStarterCrankingA ?? "—"}
+Measured cranking time X (s): ${result.derived.measuredCrankingTimeS ?? "—"}
+Alternator continuous current (A): ${result.derived.alternatorContinuousA ?? "—"}
 Cable type: ${result.derived.cableTypePresent ?? "—"}
 Cable size (mm²): ${result.derived.existingCableSizeMm2 ?? "—"}
-Starter cranking current (A): ${result.derived.starterCrankingCurrentA ?? "—"}
-Alternator continuous current (A): ${result.derived.alternatorContinuousA ?? "—"}
-K-factor (by cable type): ${result.derived.kFactor ?? "—"}
+K-factor: ${result.derived.kFactor ?? "—"}
 Cable resistance (Ω/km): ${result.derived.cableResistanceOhmPerKm ?? "—"}
 Max allowable voltage drop (V): ${result.derived.maxAllowableVoltageDropV}
 Thermal withstand time (s): ${result.cable.cableThermalWithstandTimeS ?? "—"}

@@ -29,7 +29,9 @@
       "category": "Roller",
       "efficiencyPercent": 56.25,
       "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "B45E",
@@ -72,7 +74,9 @@
       "category": "Roller",
       "efficiencyPercent": 56.25,
       "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "26T_Smoothdrum",
@@ -84,7 +88,9 @@
       "category": "Roller",
       "efficiencyPercent": 56.25,
       "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "773",
@@ -97,10 +103,12 @@
       "starterMotorType": "6V-0885",
       "powerAtCutoffKw": 9,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
+      "peakCurrentCutoffA": 1000,
       "crankingTimeRequiredS": 5,
       "alternatorContinuousA": 115,
-      "alternatorType": "CAT469-4705"
+      "alternatorType": "CAT469-4705",
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "988",
@@ -113,8 +121,10 @@
       "starterMotorType": "1990366 (42MT)",
       "powerAtCutoffKw": 9,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "peakCurrentCutoffA": 1000,
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "14H",
@@ -127,8 +137,10 @@
       "starterMotorType": "10R-0400 (39MT)",
       "powerAtCutoffKw": 7.3,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "peakCurrentCutoffA": 811,
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "14M",
@@ -175,8 +187,10 @@
       "starterMotorType": "10R-0400",
       "powerAtCutoffKw": 7.3,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "peakCurrentCutoffA": 811,
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "18T_smoothdrum /CS19 /CS78B",
@@ -189,8 +203,10 @@
       "starterMotorType": "590-4756",
       "powerAtCutoffKw": 4.5,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "peakCurrentCutoffA": 500,
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "36T /336 -Tier 4 / Stage V",
@@ -203,8 +219,10 @@
       "starterMotorType": "488-2807",
       "powerAtCutoffKw": 7.8,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "peakCurrentCutoffA": 867,
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "30 T/ 330 - Tier 4 / tge",
@@ -261,8 +279,10 @@
       "starterMotorType": "20R-1312",
       "powerAtCutoffKw": 9,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "peakCurrentCutoffA": 1000,
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "Backhoe",
@@ -275,8 +295,10 @@
       "starterMotorType": "0R-4316",
       "powerAtCutoffKw": 2.7,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "peakCurrentCutoffA": 300,
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "777 (07)",
@@ -420,7 +442,9 @@
       "powerAtCutoffKw": 9,
       "efficiencyPercent": 56.25,
       "peakCurrentCutoffA": 1000,
-      "crankingTimeRequiredS": 5
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "D10T",
@@ -499,8 +523,10 @@
       "starterMotorType": "10R-9816 (50MT)",
       "powerAtCutoffKw": 9,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "peakCurrentCutoffA": 1000,
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "D8T",
@@ -513,8 +539,10 @@
       "starterMotorType": "10R-9816 (50MT)",
       "powerAtCutoffKw": 9,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "peakCurrentCutoffA": 1000,
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "120T /EX 1200-7 / EX 2000-7",
@@ -529,7 +557,7 @@
       "starterMotorType": "RareElectrical",
       "powerAtCutoffKw": 7.5,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
+      "peakCurrentCutoffA": 833,
       "inrushCurrentA": 2000,
       "peakCrankingCurrentA": 650,
       "motorCount": 1,
@@ -543,7 +571,9 @@
       "operatingTempC": 60,
       "cableContinuousA": 440,
       "cablePeakA": 650,
-      "cableLengthM": 8
+      "cableLengthM": 8,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "360T /EX3600-6",
@@ -556,8 +586,10 @@
       "starterMotorType": "S04-019PL (276",
       "powerAtCutoffKw": 8.4,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "peakCurrentCutoffA": 933,
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "69T / ZX650H",
@@ -599,7 +631,9 @@
       "category": "Excavator",
       "efficiencyPercent": 56.25,
       "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "ZW180",
@@ -611,7 +645,9 @@
       "category": "Loader",
       "efficiencyPercent": 56.25,
       "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "FYH300",
@@ -624,8 +660,10 @@
       "starterMotorType": "S06-058G",
       "powerAtCutoffKw": 5,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "peakCurrentCutoffA": 556,
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "155 / D155AX-6",
@@ -720,9 +758,11 @@
       "starterMotorType": "AESSTR117B",
       "powerAtCutoffKw": 7.5,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
+      "peakCurrentCutoffA": 833,
       "crankingTimeRequiredS": 5,
-      "alternatorContinuousA": 140
+      "alternatorContinuousA": 140,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "HD465",
@@ -735,9 +775,11 @@
       "starterMotorType": "Nikko",
       "powerAtCutoffKw": 7.5,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
+      "peakCurrentCutoffA": 833,
       "crankingTimeRequiredS": 5,
-      "alternatorContinuousA": 50
+      "alternatorContinuousA": 50,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "WA1200",
@@ -750,13 +792,17 @@
       "starterMotorType": "Komatsu",
       "powerAtCutoffKw": 9,
       "efficiencyPercent": 56.25,
-      "peakCurrentCutoffA": "#VALUE!",
-      "crankingTimeRequiredS": 5
+      "peakCurrentCutoffA": 1000,
+      "crankingTimeRequiredS": 5,
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     },
     {
       "id": "MD6250",
       "sourceRow": 40,
-      "model": "MD6250"
+      "model": "MD6250",
+      "cutoffVoltageV": 16.0,
+      "electricalSystemV": 24
     }
   ],
   "fuseLibrary": [

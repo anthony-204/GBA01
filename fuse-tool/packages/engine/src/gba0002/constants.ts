@@ -1,5 +1,8 @@
 /**
- * GBA-0002 client deliverable — constants (revised PDF spec).
+ * GBA-0002 client v1 — constants (PDF spec + v1.1 clarifications).
+ *
+ * Sizing current: MachinesOnSite column Q (peakCurrentCutoffA).
+ * Measured cranking check: column T vs Q; cranking time: column X vs 5 s.
  */
 
 /** Minimum starter motor voltage (V) — PDF line item 5. */
