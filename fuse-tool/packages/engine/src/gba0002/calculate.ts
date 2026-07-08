@@ -12,7 +12,6 @@ import {
   sortedFuseRatingOptions,
 } from "../lookups.js";
 import {
-  GBA0002_CLIENT_MACHINE_IDS,
   GBA0002_CRANKING_TIME_S,
   GBA0002_MIN_STARTER_VOLTAGE_V,
   GBA0002_SAFETY_FACTOR_OPTIONS,
@@ -41,10 +40,26 @@ import type {
 
 export { GBA0002_SAFETY_FACTOR_OPTIONS };
 
+function machineIsCalculableV11(machine: MachineRecord): boolean {
+  const designCrankingA = parseNumber(machine.peakCurrentCutoffA);
+  const alternatorA = parseNumber(machine.alternatorContinuousA);
+  const cableSize = parseNumber(machine.cableSizeMm2);
+  const cableType = (machine.cableType as string) ?? null;
+  return (
+    designCrankingA !== null &&
+    designCrankingA > 0 &&
+    alternatorA !== null &&
+    alternatorA > 0 &&
+    cableSize !== null &&
+    cableType !== null &&
+    cableType.trim().length > 0
+  );
+}
+
 export function filterClientMachines(machines: MachineRecord[]): MachineRecord[] {
-  return GBA0002_CLIENT_MACHINE_IDS.map(
-    (id) => machines.find((m) => m.id === id) ?? null,
-  ).filter((m): m is MachineRecord => m !== null);
+  return machines
+    .filter((m) => machineIsCalculableV11(m))
+    .sort((a, b) => String(a.id).localeCompare(String(b.id)));
 }
 
 export function computeCableThermalWithstandTimeS(
@@ -180,11 +195,8 @@ export function calculateGba0002(
   const machine = findMachine(db, inputs.modelId);
   const manufacturer = (machine?.manufacturer as string) ?? null;
 
-  if (
-    !machine ||
-    !GBA0002_CLIENT_MACHINE_IDS.includes(machine.id as (typeof GBA0002_CLIENT_MACHINE_IDS)[number])
-  ) {
-    return failResult(inputs, "DATA MISSING", "Machine not found in local sample list.");
+  if (!machine) {
+    return failResult(inputs, "DATA MISSING", "Machine not found in local database.");
   }
 
   // v1.1 — battery voltage vs minimum starter voltage (16 V constant).

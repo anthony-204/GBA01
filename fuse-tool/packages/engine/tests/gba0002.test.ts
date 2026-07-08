@@ -12,7 +12,6 @@ import {
   computeCablePeakCapabilityA,
   computeCableThermalWithstandTimeS,
   filterClientMachines,
-  GBA0002_CLIENT_MACHINE_IDS,
   GBA0002_CRANKING_TIME_S,
   GBA0002_MIN_STARTER_VOLTAGE_V,
   loadDatabase,
@@ -34,10 +33,11 @@ const valid = {
 };
 
 describe("GBA-0002 client v1.1", () => {
-  it("loads nine sample machines", () => {
-    expect(filterClientMachines(db.machines).map((m) => m.id)).toEqual([
-      ...GBA0002_CLIENT_MACHINE_IDS,
-    ]);
+  it("loads all machines calculable by v1.1 gates", () => {
+    const ids = filterClientMachines(db.machines).map((m) => m.id);
+    expect(ids).toContain("120T /EX 1200-7 / EX 2000-7");
+    expect(ids).not.toContain("69T / ZX650H");
+    expect(ids.length).toBeGreaterThanOrEqual(10);
   });
 
   it("uses column Q for design cranking current on B45E", () => {

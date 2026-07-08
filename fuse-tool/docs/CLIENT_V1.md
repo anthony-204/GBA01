@@ -5,7 +5,7 @@
 
 ## Purpose
 
-Single-page GBA-0002 prototype: four user inputs, nine sample machines, cable/fuse results.
+Single-page GBA-0002 prototype: four user inputs, all machines that satisfy v1.1 calculation prerequisites (Q, alternator, cable type/size), and cable/fuse results.
 
 **v1.1 changes:** Column **Q** for sizing; battery / starter / cranking-time checks; manufacturer in results; Cable_Capacity upgrade fix.
 

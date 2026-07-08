@@ -24,7 +24,7 @@ GB Engineering/
 |--------|---------|----------|
 | **`main`** | Full **Version 2 engineering tool** — 37-vehicle fleet, library + manual entry, completeness gate | Internal engineering |
 | **`feature/excel-manual-presets`** | Manual-entry Excel preset toggle | Engineering / QA |
-| **`client/v1`** | **Active client prototype** (app v1.1) — GBA-0002, 9 machines, 4 inputs, v1.1 checks, column Q sizing | Client / field trial |
+| **`client/v1`** | **Active client prototype** (app v1.1) — GBA-0002, 4 inputs, all v1.1-calculable machines, v1.1 checks, column Q sizing | Client / field trial |
 | **`client/old1`** | *Deprecated* — former `client/v1` (trace UI deliverable) | Archive |
 | **`client/old2`** | *Deprecated* — former `client/v2` (validation guardrails) | Archive |
 
