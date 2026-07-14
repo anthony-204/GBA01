@@ -204,7 +204,16 @@ export function calculateGba0002(
     return failResult(inputs, "FAIL", MSG_BATTERY_VOLTAGE_LOW, emptyDerived(), manufacturer);
   }
 
-  const designCrankingA = parseNumber(machine.peakCurrentCutoffA);
+  const databaseQ = parseNumber(machine.peakCurrentCutoffA);
+  const manualQ =
+    inputs.manualPeakCurrentCutoffA !== undefined &&
+    inputs.manualPeakCurrentCutoffA !== null &&
+    Number.isFinite(inputs.manualPeakCurrentCutoffA) &&
+    inputs.manualPeakCurrentCutoffA > 0
+      ? inputs.manualPeakCurrentCutoffA
+      : null;
+  const qOverridden = manualQ !== null;
+  const designCrankingA = manualQ ?? databaseQ;
   const measuredCrankingA = parseNumber(machine.peakCrankingCurrentA);
   const measuredCrankingTimeS = parseNumber(machine.crankingTimeMeasuredS);
   const alternatorA = parseNumber(machine.alternatorContinuousA);
@@ -226,6 +235,8 @@ export function calculateGba0002(
       "DATA MISSING",
       "Required machine data is missing from MachinesOnSite (including column Q starter current).",
       partialDerived({
+        databasePeakCurrentCutoffA: databaseQ,
+        starterCrankingCurrentOverridden: qOverridden,
         measuredStarterCrankingA: measuredCrankingA,
         measuredCrankingTimeS: measuredCrankingTimeS,
       }),
@@ -241,6 +252,8 @@ export function calculateGba0002(
       MSG_STARTER_CRANKING_HIGH,
       partialDerived({
         starterCrankingCurrentA: designCrankingA,
+        databasePeakCurrentCutoffA: databaseQ,
+        starterCrankingCurrentOverridden: qOverridden,
         measuredStarterCrankingA: measuredCrankingA,
         measuredCrankingTimeS: measuredCrankingTimeS,
         alternatorContinuousA: alternatorA,
@@ -257,6 +270,8 @@ export function calculateGba0002(
       MSG_CRANKING_TIME_HIGH,
       partialDerived({
         starterCrankingCurrentA: designCrankingA,
+        databasePeakCurrentCutoffA: databaseQ,
+        starterCrankingCurrentOverridden: qOverridden,
         measuredStarterCrankingA: measuredCrankingA,
         measuredCrankingTimeS: measuredCrankingTimeS,
         alternatorContinuousA: alternatorA,
@@ -276,6 +291,8 @@ export function calculateGba0002(
       partialDerived({
         cableTypePresent: cableType,
         starterCrankingCurrentA: crankingA,
+        databasePeakCurrentCutoffA: databaseQ,
+        starterCrankingCurrentOverridden: qOverridden,
         measuredStarterCrankingA: measuredCrankingA,
         measuredCrankingTimeS: measuredCrankingTimeS,
         alternatorContinuousA: alternatorA,
@@ -310,7 +327,12 @@ export function calculateGba0002(
       inputs,
       "ENGINEERING REVIEW REQUIRED",
       "Cable temperature rating could not be interpreted. Engineering review required.",
-      partialDerived({ starterCrankingCurrentA: crankingA, measuredStarterCrankingA: measuredCrankingA }),
+      partialDerived({
+        starterCrankingCurrentA: crankingA,
+        databasePeakCurrentCutoffA: databaseQ,
+        starterCrankingCurrentOverridden: qOverridden,
+        measuredStarterCrankingA: measuredCrankingA,
+      }),
       manufacturer,
     );
   }
@@ -324,6 +346,8 @@ export function calculateGba0002(
     existingCableSizeMm2: cableSize,
     cableResistanceOhmPerKm: resistance,
     starterCrankingCurrentA: crankingA,
+    databasePeakCurrentCutoffA: databaseQ,
+    starterCrankingCurrentOverridden: qOverridden,
     measuredStarterCrankingA: measuredCrankingA,
     measuredCrankingTimeS: measuredCrankingTimeS,
     alternatorContinuousA: alternatorA,
@@ -441,6 +465,8 @@ function emptyDerived(): Gba0002DerivedParameters {
     existingCableSizeMm2: null,
     cableResistanceOhmPerKm: null,
     starterCrankingCurrentA: null,
+    databasePeakCurrentCutoffA: null,
+    starterCrankingCurrentOverridden: false,
     measuredStarterCrankingA: null,
     measuredCrankingTimeS: null,
     alternatorContinuousA: null,

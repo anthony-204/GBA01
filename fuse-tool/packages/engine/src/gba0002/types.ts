@@ -10,6 +10,11 @@ export interface Gba0002UserInputs {
   safetyFactorPercent: 25 | 50;
   batteryVoltageDuringCrankingV: number;
   operatingTempC: number;
+  /**
+   * Optional manual override for MachinesOnSite column Q (peak current cut-off, A).
+   * When set to a finite value > 0, replaces the database Q for sizing and T≤Q checks.
+   */
+  manualPeakCurrentCutoffA?: number | null;
 }
 
 export type CableRecommendationStatus = "no-change" | "upgraded" | "unsuitable";
@@ -48,6 +53,10 @@ export interface Gba0002DerivedParameters {
   cableResistanceOhmPerKm: number | null;
   /** Column Q — design / inrush worst-case current used for cable and fuse sizing (A). */
   starterCrankingCurrentA: number | null;
+  /** True when starterCrankingCurrentA came from manualPeakCurrentCutoffA. */
+  starterCrankingCurrentOverridden: boolean;
+  /** Database column Q before any manual override (A). */
+  databasePeakCurrentCutoffA: number | null;
   /** Column T — measured peak continuous cranking current (A). */
   measuredStarterCrankingA: number | null;
   /** Column X — measured cranking time (s). */

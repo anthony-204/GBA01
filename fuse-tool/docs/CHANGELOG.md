@@ -1,5 +1,10 @@
 # Changelog — GBA-0002 Client Tool
 
+## Version 1.2 — 14/07/2026
+
+- Export calculation result as PDF (date/time, inputs, outputs, derived details).
+- Optional manual entry for column Q (peak current cut-off) to override the database value for sizing.
+
 ## Version 1.1 — 14/07/2026
 
 - Switched "Peak continuous current during cranking (A)" (column T) to theoretical "Peak current cut off(A) from power and efficiency calculation" (column Q).

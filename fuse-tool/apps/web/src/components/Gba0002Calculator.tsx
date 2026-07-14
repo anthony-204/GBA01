@@ -8,8 +8,9 @@ import {
   type Gba0002Result,
 } from "@fuse-tool/engine";
 import { getDatabase } from "@/lib/db";
+import { exportGba0002Pdf } from "@/lib/exportGba0002Pdf";
 
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.2.0";
 
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   {
@@ -28,6 +29,14 @@ const CHANGELOG: { version: string; date: string; items: string[] }[] = [
       "Database: 16 V cutoff assumed for blank data points and column Q derived from power and efficiency where missing.",
       "Fixed cable upgrade (Condition 2) using Cable_Capacity k-factor on each row.",
       "Results now show the manufacturer and output labels include also units.",
+    ],
+  },
+  {
+    version: "1.2",
+    date: "14/07/2026",
+    items: [
+      "Export calculation result as PDF (date/time, inputs, outputs, derived details).",
+      "Optional manual entry for column Q (peak current cut-off) to override the database value for sizing.",
     ],
   },
 ];
@@ -50,6 +59,15 @@ const pageStyle: CSSProperties = {
   color: "#000",
   backgroundColor: "#fff",
   minHeight: "100vh",
+};
+
+const buttonStyle: CSSProperties = {
+  marginTop: 8,
+  padding: "6px 12px",
+  color: "#000",
+  backgroundColor: "#eee",
+  border: "1px solid #999",
+  cursor: "pointer",
 };
 
 function formatLength(m: number | null | undefined): string {
@@ -78,23 +96,46 @@ export function Gba0002Calculator() {
   const [safetyFactor, setSafetyFactor] = useState<25 | 50>(25);
   const [batteryV, setBatteryV] = useState("20");
   const [operatingTemp, setOperatingTemp] = useState("60");
+  const [manualQEnabled, setManualQEnabled] = useState(false);
+  const [manualQA, setManualQA] = useState("");
   const [result, setResult] = useState<Gba0002Result | null>(null);
   const [showChangelog, setShowChangelog] = useState(false);
+  const [calcError, setCalcError] = useState<string | null>(null);
+
+  const selectedMachine = machines.find((m) => m.id === modelId);
+  const databaseQA = selectedMachine?.peakCurrentCutoffA;
 
   function runCalculate() {
+    setCalcError(null);
     const battery = Number(batteryV);
     const temp = Number(operatingTemp);
+
+    let manualPeakCurrentCutoffA: number | null = null;
+    if (manualQEnabled) {
+      const q = Number(manualQA);
+      if (!Number.isFinite(q) || q <= 0) {
+        setCalcError("Enter a valid column Q current (A) greater than zero.");
+        setResult(null);
+        return;
+      }
+      manualPeakCurrentCutoffA = q;
+    }
+
     setResult(
       calculateGba0002(db, {
         modelId,
         safetyFactorPercent: safetyFactor,
         batteryVoltageDuringCrankingV: battery,
         operatingTempC: temp,
+        manualPeakCurrentCutoffA,
       }),
     );
   }
 
-  const selectedMachine = machines.find((m) => m.id === modelId);
+  function onExportPdf() {
+    if (!result) return;
+    exportGba0002Pdf(result, APP_VERSION);
+  }
 
   return (
     <div style={pageStyle}>
@@ -120,9 +161,7 @@ export function Gba0002Calculator() {
         <div style={{ marginTop: 8, padding: 10, border: "1px solid #ccc", fontSize: 13, background: "#fafafa" }}>
           {CHANGELOG.map((entry) => (
             <div key={entry.version} style={{ marginBottom: 10 }}>
-              <strong>
-                Version {entry.version}
-              </strong>{" "}
+              <strong>Version {entry.version}</strong>{" "}
               <span style={{ color: "#555" }}>({entry.date})</span>
               <ul style={{ margin: "4px 0 0", paddingLeft: 18 }}>
                 {entry.items.map((item) => (
@@ -179,13 +218,66 @@ export function Gba0002Calculator() {
           />
         </label>
 
-        <button
-          type="button"
-          onClick={runCalculate}
-          style={{ marginTop: 8, padding: "6px 12px", color: "#000", backgroundColor: "#eee", border: "1px solid #999" }}
+        <div
+          style={{
+            marginTop: 12,
+            marginBottom: 8,
+            padding: 10,
+            border: "1px dashed #888",
+            background: "#fafafa",
+          }}
         >
-          Calculate
-        </button>
+          <label style={{ display: "flex", gap: 8, alignItems: "flex-start", color: "#000" }}>
+            <input
+              type="checkbox"
+              checked={manualQEnabled}
+              onChange={(e) => setManualQEnabled(e.target.checked)}
+              style={{ marginTop: 2 }}
+            />
+            <span>
+              Enable manual entry of cranking current (column Q)
+              <br />
+              <span style={{ fontSize: 12, color: "#555" }}>
+                Database Q for this machine:{" "}
+                {databaseQA == null ? "—" : `${databaseQA} A`}
+              </span>
+            </span>
+          </label>
+          {manualQEnabled && (
+            <label style={{ display: "block", marginTop: 8, color: "#000" }}>
+              Peak current cut-off Q (A)
+              <input
+                type="text"
+                value={manualQA}
+                onChange={(e) => setManualQA(e.target.value)}
+                placeholder="e.g. 800"
+                style={fieldStyle}
+              />
+            </label>
+          )}
+        </div>
+
+        {calcError && (
+          <p style={{ margin: "8px 0 0", color: "#a00", fontSize: 13 }}>{calcError}</p>
+        )}
+
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button type="button" onClick={runCalculate} style={buttonStyle}>
+            Calculate
+          </button>
+          <button
+            type="button"
+            onClick={onExportPdf}
+            disabled={!result}
+            style={{
+              ...buttonStyle,
+              opacity: result ? 1 : 0.5,
+              cursor: result ? "pointer" : "not-allowed",
+            }}
+          >
+            Export PDF
+          </button>
+        </div>
       </div>
 
       {result && (
@@ -265,6 +357,8 @@ export function Gba0002Calculator() {
 Manufacturer: ${result.manufacturer ?? "—"}
 Model: ${result.modelId}
 Design cranking current Q (A): ${result.derived.starterCrankingCurrentA ?? "—"}
+Database column Q (A): ${result.derived.databasePeakCurrentCutoffA ?? "—"}
+Q overridden manually: ${result.derived.starterCrankingCurrentOverridden ? "yes" : "no"}
 Measured cranking current T (A): ${result.derived.measuredStarterCrankingA ?? "—"}
 Measured cranking time X (s): ${result.derived.measuredCrankingTimeS ?? "—"}
 Alternator continuous current (A): ${result.derived.alternatorContinuousA ?? "—"}

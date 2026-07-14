@@ -87,14 +87,13 @@ describe("GBA-0002 client v1.1", () => {
     expect(500).toBeLessThanOrEqual(computeCablePeakCapabilityA(143, 70, GBA0002_CRANKING_TIME_S));
   });
 
-  it("can upgrade cable when site cable fails temperature (D10T at 95 °C)", () => {
+  it("uses manual column Q override when provided", () => {
     const result = calculateGba0002(db, {
-      modelId: "D10T",
-      safetyFactorPercent: 25,
-      batteryVoltageDuringCrankingV: 20,
-      operatingTempC: 95,
+      ...valid,
+      manualPeakCurrentCutoffA: 750,
     });
-    expect(result.cable.recommendationStatus).toBe("upgraded");
-    expect(result.cable.message).toMatch(/Two Single Core/);
+    expect(result.derived.starterCrankingCurrentA).toBe(750);
+    expect(result.derived.databasePeakCurrentCutoffA).toBe(500);
+    expect(result.derived.starterCrankingCurrentOverridden).toBe(true);
   });
 });
