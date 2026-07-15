@@ -338,22 +338,29 @@ export function Gba0002Calculator() {
   const [batteryV, setBatteryV] = useState("20");
   const [operatingTemp, setOperatingTemp] = useState("60");
   const [manualQA, setManualQA] = useState("");
+  const [manualPowerKw, setManualPowerKw] = useState("");
+  const [recoveryMethod, setRecoveryMethod] = useState<"power" | "current">("power");
   const [result, setResult] = useState<Gba0002Result | null>(null);
   const [showChangelog, setShowChangelog] = useState(false);
   const [calcError, setCalcError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<{ battery?: string; temp?: string; manualQ?: string }>(
-    {},
-  );
+  const [fieldErrors, setFieldErrors] = useState<{
+    battery?: string;
+    temp?: string;
+    recovery?: string;
+  }>({});
 
   const selectedMachine = machines.find((m) => m.id === modelId);
   const databaseQA = selectedMachine?.peakCurrentCutoffA;
-  const showManualQ = result !== null && result.statusLabel !== "PASS";
+  const databaseQNumber = Number(databaseQA);
+  const databaseQMissing = !Number.isFinite(databaseQNumber) || databaseQNumber <= 0;
+  const showStarterRecovery =
+    result !== null && result.statusLabel === "DATA MISSING" && databaseQMissing;
   const overallTone = result ? statusToneFromLabel(result.statusLabel) : "neutral";
   const checks = result ? buildChecks(result) : [];
 
   function runCalculate() {
     setCalcError(null);
-    const errors: { battery?: string; temp?: string; manualQ?: string } = {};
+    const errors: { battery?: string; temp?: string; recovery?: string } = {};
     const battery = Number(batteryV);
     const temp = Number(operatingTemp);
 
@@ -365,12 +372,22 @@ export function Gba0002Calculator() {
     }
 
     let manualPeakCurrentCutoffA: number | null = null;
-    if (showManualQ && manualQA.trim() !== "") {
-      const q = Number(manualQA);
-      if (!Number.isFinite(q) || q <= 0) {
-        errors.manualQ = "Enter a valid column Q current (A) greater than zero.";
+    let manualPowerAtCutoffKw: number | null = null;
+    if (showStarterRecovery) {
+      if (recoveryMethod === "power") {
+        const power = Number(manualPowerKw);
+        if (!Number.isFinite(power) || power <= 0) {
+          errors.recovery = "Enter approved starter power greater than 0 kW.";
+        } else {
+          manualPowerAtCutoffKw = power;
+        }
       } else {
-        manualPeakCurrentCutoffA = q;
+        const q = Number(manualQA);
+        if (!Number.isFinite(q) || q <= 0) {
+          errors.recovery = "Enter an approved peak current cut-off greater than 0 A.";
+        } else {
+          manualPeakCurrentCutoffA = q;
+        }
       }
     }
 
@@ -386,10 +403,12 @@ export function Gba0002Calculator() {
       batteryVoltageDuringCrankingV: battery,
       operatingTempC: temp,
       manualPeakCurrentCutoffA,
+      manualPowerAtCutoffKw,
     });
     setResult(next);
     if (next.statusLabel === "PASS") {
       setManualQA("");
+      setManualPowerKw("");
     }
     window.setTimeout(() => {
       resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -456,7 +475,19 @@ export function Gba0002Calculator() {
 
         <label style={{ display: "block", marginBottom: 14, fontWeight: 600 }}>
           Machine make and model
-          <select value={modelId} onChange={(e) => setModelId(e.target.value)} style={fieldStyle}>
+          <select
+            value={modelId}
+            onChange={(e) => {
+              setModelId(e.target.value);
+              setResult(null);
+              setManualQA("");
+              setManualPowerKw("");
+              setRecoveryMethod("power");
+              setCalcError(null);
+              setFieldErrors({});
+            }}
+            style={fieldStyle}
+          >
             {machines.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.manufacturer ? `${m.manufacturer} — ` : ""}
@@ -525,7 +556,7 @@ export function Gba0002Calculator() {
           </ExplanationDropdown>
         </label>
 
-        {showManualQ && (
+        {showStarterRecovery && (
           <div
             style={{
               marginTop: 12,
@@ -535,30 +566,68 @@ export function Gba0002Calculator() {
               borderRadius: 4,
             }}
           >
-            <p style={{ margin: "0 0 8px", fontWeight: 700 }}>Adjust column Q (peak current cut-off)</p>
+            <p style={{ margin: "0 0 8px", fontWeight: 700 }}>Complete the missing starter data</p>
             <p style={{ margin: "0 0 8px", fontSize: 13, color: "#555" }}>
-              Shown because the last result was not PASS. Enter a value to recalculate using a manual Q instead of
-              the database value ({databaseQA == null ? "—" : `${databaseQA} A`}).
+              The starter peak current limit is missing because starter power at cut-off voltage is unavailable.
+              Use approved manufacturer, machine, or site data only.
             </p>
-            <label style={{ display: "block", fontWeight: 600 }}>
-              Peak current cut-off Q (A)
+            <label style={{ display: "block", marginBottom: 8, fontWeight: 400 }}>
               <input
-                type="text"
-                inputMode="decimal"
-                value={manualQA}
-                onChange={(e) => setManualQA(e.target.value)}
-                placeholder={`Database: ${databaseQA ?? "—"}`}
-                style={fieldErrors.manualQ ? fieldErrorStyle : fieldStyle}
-              />
+                type="radio"
+                name="starter-recovery-method"
+                checked={recoveryMethod === "power"}
+                onChange={() => {
+                  setRecoveryMethod("power");
+                  setFieldErrors((current) => ({ ...current, recovery: undefined }));
+                }}
+              />{" "}
+              Enter power at cut-off voltage (kW) — recommended
             </label>
-            {fieldErrors.manualQ && (
+            <label style={{ display: "block", marginBottom: 10, fontWeight: 400 }}>
+              <input
+                type="radio"
+                name="starter-recovery-method"
+                checked={recoveryMethod === "current"}
+                onChange={() => {
+                  setRecoveryMethod("current");
+                  setFieldErrors((current) => ({ ...current, recovery: undefined }));
+                }}
+              />{" "}
+              Enter peak current cut-off (A)
+            </label>
+            {recoveryMethod === "power" ? (
+              <label style={{ display: "block", fontWeight: 600 }}>
+                Power at cut-off voltage (kW)
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={manualPowerKw}
+                  onChange={(e) => setManualPowerKw(e.target.value)}
+                  placeholder="e.g. 4.5"
+                  style={fieldErrors.recovery ? fieldErrorStyle : fieldStyle}
+                />
+              </label>
+            ) : (
+              <label style={{ display: "block", fontWeight: 600 }}>
+                Peak current cut-off (A)
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={manualQA}
+                  onChange={(e) => setManualQA(e.target.value)}
+                  placeholder="e.g. 500"
+                  style={fieldErrors.recovery ? fieldErrorStyle : fieldStyle}
+                />
+              </label>
+            )}
+            {fieldErrors.recovery && (
               <span style={{ display: "block", marginTop: 4, color: "#c62828", fontSize: 13 }}>
-                {fieldErrors.manualQ}
+                {fieldErrors.recovery}
               </span>
             )}
-            <ExplanationDropdown summary="What is column Q?">
-              Column Q is the theoretical peak current cut-off from power and efficiency. Leave blank to keep using
-              the database value.
+            <ExplanationDropdown summary="How is peak current calculated?">
+              When power is supplied, peak current is calculated from starter power, cut-off voltage, and efficiency.
+              The direct current option uses the approved value entered above.
             </ExplanationDropdown>
           </div>
         )}

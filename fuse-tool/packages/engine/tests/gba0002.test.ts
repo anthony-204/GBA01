@@ -36,7 +36,7 @@ describe("GBA-0002 client v1.1", () => {
   it("loads all machines calculable by v1.1 gates", () => {
     const ids = filterClientMachines(db.machines).map((m) => m.id);
     expect(ids).toContain("120T /EX 1200-7 / EX 2000-7");
-    expect(ids).not.toContain("69T / ZX650H");
+    expect(ids).toContain("69T / ZX650H");
     expect(ids.length).toBeGreaterThanOrEqual(10);
   });
 
@@ -95,5 +95,31 @@ describe("GBA-0002 client v1.1", () => {
     expect(result.derived.starterCrankingCurrentA).toBe(750);
     expect(result.derived.databasePeakCurrentCutoffA).toBe(500);
     expect(result.derived.starterCrankingCurrentOverridden).toBe(true);
+  });
+
+  it("returns DATA MISSING before recovery data is supplied", () => {
+    const result = calculateGba0002(db, { ...valid, modelId: "69T / ZX650H" });
+    expect(result.statusLabel).toBe("DATA MISSING");
+    expect(result.blocked).toBe(true);
+  });
+
+  it("derives peak current from supplied starter power", () => {
+    const result = calculateGba0002(db, {
+      ...valid,
+      modelId: "69T / ZX650H",
+      manualPowerAtCutoffKw: 4.5,
+    });
+    expect(result.blocked).toBe(false);
+    expect(result.derived.starterCrankingCurrentA).toBe(500);
+  });
+
+  it("accepts a supplied peak current cut-off", () => {
+    const result = calculateGba0002(db, {
+      ...valid,
+      modelId: "69T / ZX650H",
+      manualPeakCurrentCutoffA: 500,
+    });
+    expect(result.blocked).toBe(false);
+    expect(result.derived.starterCrankingCurrentA).toBe(500);
   });
 });

@@ -40,14 +40,11 @@ import type {
 
 export { GBA0002_SAFETY_FACTOR_OPTIONS };
 
-function machineIsCalculableV11(machine: MachineRecord): boolean {
-  const designCrankingA = parseNumber(machine.peakCurrentCutoffA);
+function machineHasRequiredSupportingData(machine: MachineRecord): boolean {
   const alternatorA = parseNumber(machine.alternatorContinuousA);
   const cableSize = parseNumber(machine.cableSizeMm2);
   const cableType = (machine.cableType as string) ?? null;
   return (
-    designCrankingA !== null &&
-    designCrankingA > 0 &&
     alternatorA !== null &&
     alternatorA > 0 &&
     cableSize !== null &&
@@ -58,7 +55,7 @@ function machineIsCalculableV11(machine: MachineRecord): boolean {
 
 export function filterClientMachines(machines: MachineRecord[]): MachineRecord[] {
   return machines
-    .filter((m) => machineIsCalculableV11(m))
+    .filter((m) => machineHasRequiredSupportingData(m))
     .sort((a, b) => String(a.id).localeCompare(String(b.id)));
 }
 
@@ -212,8 +209,25 @@ export function calculateGba0002(
     inputs.manualPeakCurrentCutoffA > 0
       ? inputs.manualPeakCurrentCutoffA
       : null;
-  const qOverridden = manualQ !== null;
-  const designCrankingA = manualQ ?? databaseQ;
+  const manualPowerKw =
+    inputs.manualPowerAtCutoffKw !== undefined &&
+    inputs.manualPowerAtCutoffKw !== null &&
+    Number.isFinite(inputs.manualPowerAtCutoffKw) &&
+    inputs.manualPowerAtCutoffKw > 0
+      ? inputs.manualPowerAtCutoffKw
+      : null;
+  const cutoffVoltageV = parseNumber(machine.cutoffVoltageV);
+  const efficiencyPercent = parseNumber(machine.efficiencyPercent);
+  const qFromPower =
+    manualPowerKw !== null &&
+    cutoffVoltageV !== null &&
+    cutoffVoltageV > 0 &&
+    efficiencyPercent !== null &&
+    efficiencyPercent > 0
+      ? Math.ceil((manualPowerKw * 1000 * 100) / (cutoffVoltageV * efficiencyPercent))
+      : null;
+  const qOverridden = manualQ !== null || qFromPower !== null;
+  const designCrankingA = manualQ ?? qFromPower ?? databaseQ;
   const measuredCrankingA = parseNumber(machine.peakCrankingCurrentA);
   const measuredCrankingTimeS = parseNumber(machine.crankingTimeMeasuredS);
   const alternatorA = parseNumber(machine.alternatorContinuousA);
@@ -233,7 +247,7 @@ export function calculateGba0002(
     return failResult(
       inputs,
       "DATA MISSING",
-      "Required machine data is missing from MachinesOnSite (including column Q starter current).",
+      "The starter peak current limit is missing because starter power at cut-off voltage is unavailable.",
       partialDerived({
         databasePeakCurrentCutoffA: databaseQ,
         starterCrankingCurrentOverridden: qOverridden,
