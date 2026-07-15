@@ -209,10 +209,23 @@ export function calculateGba0002(
     suppliedPeakLimitA > 0
       ? suppliedPeakLimitA
       : null;
+  const suppliedPowerKw = inputs.starterPowerAtCutoffKw;
+  const cutoffVoltageV = parseNumber(machine.cutoffVoltageV);
+  const efficiencyPercent = parseNumber(machine.efficiencyPercent);
+  const peakLimitFromPowerA =
+    typeof suppliedPowerKw === "number" &&
+    Number.isFinite(suppliedPowerKw) &&
+    suppliedPowerKw > 0 &&
+    cutoffVoltageV !== null &&
+    cutoffVoltageV > 0 &&
+    efficiencyPercent !== null &&
+    efficiencyPercent > 0
+      ? Math.ceil((suppliedPowerKw * 1000 * 100) / (cutoffVoltageV * efficiencyPercent))
+      : null;
   const designCrankingA =
     databasePeakLimitA !== null && databasePeakLimitA > 0
       ? databasePeakLimitA
-      : validSuppliedPeakLimitA;
+      : validSuppliedPeakLimitA ?? peakLimitFromPowerA;
   const measuredCrankingA = parseNumber(machine.peakCrankingCurrentA);
   const measuredCrankingTimeS = parseNumber(machine.crankingTimeMeasuredS);
   const alternatorA = parseNumber(machine.alternatorContinuousA);

@@ -9,9 +9,16 @@ import {
 } from "@fuse-tool/engine";
 import { getDatabase } from "@/lib/db";
 
-const APP_VERSION = "1.1.1";
+const APP_VERSION = "1.1.2";
 
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
+  {
+    version: "1.1.2",
+    date: "15/07/2026",
+    items: [
+      "When MachinesOnSite column Q is missing, users can enter either approved starter power at cut-off voltage or an approved peak current cut-off.",
+    ],
+  },
   {
     version: "1.1.1",
     date: "15/07/2026",
@@ -86,6 +93,8 @@ export function Gba0002Calculator() {
   const [batteryV, setBatteryV] = useState("20");
   const [operatingTemp, setOperatingTemp] = useState("60");
   const [starterPeakCurrentLimit, setStarterPeakCurrentLimit] = useState("");
+  const [starterPowerAtCutoff, setStarterPowerAtCutoff] = useState("");
+  const [peakLimitInputMethod, setPeakLimitInputMethod] = useState<"power" | "current">("power");
   const [showPeakLimitInput, setShowPeakLimitInput] = useState(false);
   const [result, setResult] = useState<Gba0002Result | null>(null);
   const [inputError, setInputError] = useState<string | null>(null);
@@ -100,12 +109,23 @@ export function Gba0002Calculator() {
     const battery = Number(batteryV);
     const temp = Number(operatingTemp);
     const enteredPeakLimit = Number(starterPeakCurrentLimit);
+    const enteredPower = Number(starterPowerAtCutoff);
     if (
       needsPeakLimit &&
       showPeakLimitInput &&
+      peakLimitInputMethod === "current" &&
       (!Number.isFinite(enteredPeakLimit) || enteredPeakLimit <= 0)
     ) {
       setInputError("Enter an approved starter peak current limit greater than 0 A.");
+      return;
+    }
+    if (
+      needsPeakLimit &&
+      showPeakLimitInput &&
+      peakLimitInputMethod === "power" &&
+      (!Number.isFinite(enteredPower) || enteredPower <= 0)
+    ) {
+      setInputError("Enter approved starter power at cut-off voltage greater than 0 kW.");
       return;
     }
     const nextResult = calculateGba0002(db, {
@@ -114,7 +134,13 @@ export function Gba0002Calculator() {
       batteryVoltageDuringCrankingV: battery,
       operatingTempC: temp,
       starterPeakCurrentLimitA:
-        needsPeakLimit && showPeakLimitInput ? enteredPeakLimit : undefined,
+        needsPeakLimit && showPeakLimitInput && peakLimitInputMethod === "current"
+          ? enteredPeakLimit
+          : undefined,
+      starterPowerAtCutoffKw:
+        needsPeakLimit && showPeakLimitInput && peakLimitInputMethod === "power"
+          ? enteredPower
+          : undefined,
     });
     setResult(nextResult);
     if (needsPeakLimit && nextResult.blocked) setShowPeakLimitInput(true);
@@ -183,6 +209,8 @@ export function Gba0002Calculator() {
             onChange={(e) => {
               setModelId(e.target.value);
               setStarterPeakCurrentLimit("");
+              setStarterPowerAtCutoff("");
+              setPeakLimitInputMethod("power");
               setShowPeakLimitInput(false);
               setInputError(null);
               setResult(null);
@@ -215,19 +243,60 @@ export function Gba0002Calculator() {
 
         {needsPeakLimit && showPeakLimitInput && (
           <div style={{ marginBottom: 8, padding: 10, border: "1px solid #b7791f", background: "#fffaf0" }}>
-            <label style={{ display: "block", color: "#000" }}>
-              Starter peak current limit (A)
+            <p style={{ margin: "0 0 8px", fontWeight: "bold", color: "#000" }}>
+              Complete the missing starter data
+            </p>
+            <label style={{ display: "block", marginBottom: 6, color: "#000" }}>
               <input
-                type="text"
-                inputMode="decimal"
-                value={starterPeakCurrentLimit}
-                onChange={(e) => setStarterPeakCurrentLimit(e.target.value)}
-                placeholder="e.g. 500"
-                style={fieldStyle}
-              />
+                type="radio"
+                name="peak-limit-method"
+                checked={peakLimitInputMethod === "power"}
+                onChange={() => {
+                  setPeakLimitInputMethod("power");
+                  setInputError(null);
+                }}
+              />{" "}
+              Enter power at cut-off voltage (kW) — recommended
             </label>
+            <label style={{ display: "block", marginBottom: 8, color: "#000" }}>
+              <input
+                type="radio"
+                name="peak-limit-method"
+                checked={peakLimitInputMethod === "current"}
+                onChange={() => {
+                  setPeakLimitInputMethod("current");
+                  setInputError(null);
+                }}
+              />{" "}
+              Enter peak current cut-off (A)
+            </label>
+            {peakLimitInputMethod === "power" ? (
+              <label style={{ display: "block", color: "#000" }}>
+                Power at cut-off voltage (kW)
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={starterPowerAtCutoff}
+                  onChange={(e) => setStarterPowerAtCutoff(e.target.value)}
+                  placeholder="e.g. 4.5"
+                  style={fieldStyle}
+                />
+              </label>
+            ) : (
+              <label style={{ display: "block", color: "#000" }}>
+                Peak current cut-off (A)
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={starterPeakCurrentLimit}
+                  onChange={(e) => setStarterPeakCurrentLimit(e.target.value)}
+                  placeholder="e.g. 500"
+                  style={fieldStyle}
+                />
+              </label>
+            )}
             <p style={{ margin: "6px 0 0", fontSize: 12, color: "#744210" }}>
-              MachinesOnSite column Q is missing or invalid. Enter the approved machine or site limit for this calculation.
+              MachinesOnSite column Q is missing or invalid. Use approved manufacturer, machine, or site data only.
             </p>
           </div>
         )}

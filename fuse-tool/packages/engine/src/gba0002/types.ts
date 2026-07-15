@@ -12,6 +12,8 @@ export interface Gba0002UserInputs {
   operatingTempC: number;
   /** Approved machine/site limit used when column Q is missing or invalid. */
   starterPeakCurrentLimitA?: number;
+  /** Starter nameplate/specification power used to derive column Q when it is missing. */
+  starterPowerAtCutoffKw?: number;
 }
 
 export type CableRecommendationStatus = "no-change" | "upgraded" | "unsuitable";

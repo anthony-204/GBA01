@@ -50,6 +50,16 @@ describe("GBA-0002 client v1.1", () => {
     expect(result.derived.starterCrankingCurrentA).toBe(500);
   });
 
+  it("derives the missing peak-current limit from supplied starter power", () => {
+    const result = calculateGba0002(db, {
+      ...valid,
+      modelId: "69T / ZX650H",
+      starterPowerAtCutoffKw: 4.5,
+    });
+    expect(result.blocked).toBe(false);
+    expect(result.derived.starterCrankingCurrentA).toBe(500);
+  });
+
   it("fails the starter check when the supplied peak-current limit is too low", () => {
     const result = calculateGba0002(db, {
       ...valid,
