@@ -36,8 +36,29 @@ describe("GBA-0002 client v1.1", () => {
   it("loads all machines calculable by v1.1 gates", () => {
     const ids = filterClientMachines(db.machines).map((m) => m.id);
     expect(ids).toContain("120T /EX 1200-7 / EX 2000-7");
-    expect(ids).not.toContain("69T / ZX650H");
+    expect(ids).toContain("69T / ZX650H");
     expect(ids.length).toBeGreaterThanOrEqual(10);
+  });
+
+  it("uses a supplied starter peak-current limit when the stored limit is invalid", () => {
+    const result = calculateGba0002(db, {
+      ...valid,
+      modelId: "69T / ZX650H",
+      starterPeakCurrentLimitA: 500,
+    });
+    expect(result.blocked).toBe(false);
+    expect(result.derived.starterCrankingCurrentA).toBe(500);
+  });
+
+  it("fails the starter check when the supplied peak-current limit is too low", () => {
+    const result = calculateGba0002(db, {
+      ...valid,
+      modelId: "69T / ZX650H",
+      starterPeakCurrentLimitA: 350,
+    });
+    expect(result.blocked).toBe(false);
+    expect(result.statusLabel).toBe("FAIL");
+    expect(result.derived.measuredStarterCrankingA).toBe(400);
   });
 
   it("uses column Q for design cranking current on B45E", () => {

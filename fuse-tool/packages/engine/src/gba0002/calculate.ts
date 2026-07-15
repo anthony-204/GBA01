@@ -40,14 +40,11 @@ import type {
 
 export { GBA0002_SAFETY_FACTOR_OPTIONS };
 
-function machineIsCalculableV11(machine: MachineRecord): boolean {
-  const designCrankingA = parseNumber(machine.peakCurrentCutoffA);
+function machineHasRequiredSupportingData(machine: MachineRecord): boolean {
   const alternatorA = parseNumber(machine.alternatorContinuousA);
   const cableSize = parseNumber(machine.cableSizeMm2);
   const cableType = (machine.cableType as string) ?? null;
   return (
-    designCrankingA !== null &&
-    designCrankingA > 0 &&
     alternatorA !== null &&
     alternatorA > 0 &&
     cableSize !== null &&
@@ -58,7 +55,7 @@ function machineIsCalculableV11(machine: MachineRecord): boolean {
 
 export function filterClientMachines(machines: MachineRecord[]): MachineRecord[] {
   return machines
-    .filter((m) => machineIsCalculableV11(m))
+    .filter((m) => machineHasRequiredSupportingData(m))
     .sort((a, b) => String(a.id).localeCompare(String(b.id)));
 }
 
@@ -204,7 +201,18 @@ export function calculateGba0002(
     return failResult(inputs, "FAIL", MSG_BATTERY_VOLTAGE_LOW, emptyDerived(), manufacturer);
   }
 
-  const designCrankingA = parseNumber(machine.peakCurrentCutoffA);
+  const databasePeakLimitA = parseNumber(machine.peakCurrentCutoffA);
+  const suppliedPeakLimitA = inputs.starterPeakCurrentLimitA;
+  const validSuppliedPeakLimitA =
+    typeof suppliedPeakLimitA === "number" &&
+    Number.isFinite(suppliedPeakLimitA) &&
+    suppliedPeakLimitA > 0
+      ? suppliedPeakLimitA
+      : null;
+  const designCrankingA =
+    databasePeakLimitA !== null && databasePeakLimitA > 0
+      ? databasePeakLimitA
+      : validSuppliedPeakLimitA;
   const measuredCrankingA = parseNumber(machine.peakCrankingCurrentA);
   const measuredCrankingTimeS = parseNumber(machine.crankingTimeMeasuredS);
   const alternatorA = parseNumber(machine.alternatorContinuousA);

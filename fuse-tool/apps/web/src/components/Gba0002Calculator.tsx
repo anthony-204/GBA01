@@ -9,9 +9,16 @@ import {
 } from "@fuse-tool/engine";
 import { getDatabase } from "@/lib/db";
 
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.1.1";
 
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
+  {
+    version: "1.1.1",
+    date: "15/07/2026",
+    items: [
+      "Added an approved starter peak-current limit input when a machine's stored column Q limit is missing or invalid.",
+    ],
+  },
   {
     version: "1.0",
     date: "June 2026",
@@ -78,23 +85,35 @@ export function Gba0002Calculator() {
   const [safetyFactor, setSafetyFactor] = useState<25 | 50>(25);
   const [batteryV, setBatteryV] = useState("20");
   const [operatingTemp, setOperatingTemp] = useState("60");
+  const [starterPeakCurrentLimit, setStarterPeakCurrentLimit] = useState("");
   const [result, setResult] = useState<Gba0002Result | null>(null);
+  const [inputError, setInputError] = useState<string | null>(null);
   const [showChangelog, setShowChangelog] = useState(false);
 
+  const selectedMachine = machines.find((m) => m.id === modelId);
+  const storedPeakLimit = Number(selectedMachine?.peakCurrentCutoffA);
+  const needsPeakLimit = !Number.isFinite(storedPeakLimit) || storedPeakLimit <= 0;
+
   function runCalculate() {
+    setInputError(null);
     const battery = Number(batteryV);
     const temp = Number(operatingTemp);
+    const enteredPeakLimit = Number(starterPeakCurrentLimit);
+    if (needsPeakLimit && (!Number.isFinite(enteredPeakLimit) || enteredPeakLimit <= 0)) {
+      setInputError("Enter an approved starter peak current limit greater than 0 A.");
+      setResult(null);
+      return;
+    }
     setResult(
       calculateGba0002(db, {
         modelId,
         safetyFactorPercent: safetyFactor,
         batteryVoltageDuringCrankingV: battery,
         operatingTempC: temp,
+        starterPeakCurrentLimitA: needsPeakLimit ? enteredPeakLimit : undefined,
       }),
     );
   }
-
-  const selectedMachine = machines.find((m) => m.id === modelId);
 
   return (
     <div style={pageStyle}>
@@ -154,7 +173,16 @@ export function Gba0002Calculator() {
 
         <label style={{ display: "block", marginBottom: 8, color: "#000" }}>
           Machine make and model
-          <select value={modelId} onChange={(e) => setModelId(e.target.value)} style={fieldStyle}>
+          <select
+            value={modelId}
+            onChange={(e) => {
+              setModelId(e.target.value);
+              setStarterPeakCurrentLimit("");
+              setInputError(null);
+              setResult(null);
+            }}
+            style={fieldStyle}
+          >
             {machines.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.manufacturer ? `${m.manufacturer} — ` : ""}
@@ -178,6 +206,27 @@ export function Gba0002Calculator() {
             style={fieldStyle}
           />
         </label>
+
+        {needsPeakLimit && (
+          <div style={{ marginBottom: 8, padding: 10, border: "1px solid #b7791f", background: "#fffaf0" }}>
+            <label style={{ display: "block", color: "#000" }}>
+              Starter peak current limit (A)
+              <input
+                type="text"
+                inputMode="decimal"
+                value={starterPeakCurrentLimit}
+                onChange={(e) => setStarterPeakCurrentLimit(e.target.value)}
+                placeholder="e.g. 500"
+                style={fieldStyle}
+              />
+            </label>
+            <p style={{ margin: "6px 0 0", fontSize: 12, color: "#744210" }}>
+              The stored limit is missing or invalid. Enter the approved machine or site limit for this calculation.
+            </p>
+          </div>
+        )}
+
+        {inputError && <p style={{ margin: "0 0 8px", color: "#a00", fontSize: 13 }}>{inputError}</p>}
 
         <button
           type="button"
