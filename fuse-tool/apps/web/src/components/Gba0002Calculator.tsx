@@ -404,11 +404,20 @@ export function Gba0002Calculator() {
   return (
     <div style={pageStyle}>
       <header style={{ textAlign: "left", paddingBottom: 8, borderBottom: "1px solid #ddd" }}>
-        <img
-          src="/GBAuto_LOGO.svg"
-          alt="GB Auto"
-          style={{ display: "block", height: 48, width: "auto", maxWidth: "100%" }}
-        />
+        <div
+          style={{
+            display: "inline-block",
+            background: "#000",
+            padding: "8px 12px",
+            borderRadius: 4,
+          }}
+        >
+          <img
+            src="/GBAuto_LOGO.png"
+            alt="GB Auto"
+            style={{ display: "block", height: 56, width: "auto", maxWidth: "100%" }}
+          />
+        </div>
         <h1 style={{ fontSize: 22, margin: "10px 0 4px", lineHeight: 1.2 }}>
           Fuse &amp; Cable Protection Tool
         </h1>
@@ -578,11 +587,21 @@ export function Gba0002Calculator() {
 
       {result && (
         <div ref={resultRef}>
-          <section style={{ ...cardStyle, padding: 0, overflow: "hidden" }}>
-            <StatusPanel tone={overallTone} style={{ border: "none", borderRadius: 0 }}>
-              <h2 style={{ margin: "0 0 10px", fontSize: 18, color: "#111" }}>Overall Result</h2>
+          <section style={{ ...cardStyle, padding: 0, overflow: "hidden", border: "none" }}>
+            <StatusPanel
+              tone={overallTone}
+              style={{
+                borderWidth: 4,
+                borderStyle: "solid",
+                borderRadius: 4,
+                padding: 18,
+              }}
+            >
+              <h2 style={{ margin: "0 0 10px", fontSize: 20, color: "#111", fontWeight: 800 }}>
+                Overall Result
+              </h2>
               <StatusBadge label={result.statusLabel} tone={overallTone} large />
-              <p style={{ margin: "12px 0 0", fontSize: 16, fontWeight: 700, color: "#111" }}>
+              <p style={{ margin: "14px 0 0", fontSize: 18, fontWeight: 800, color: "#111" }}>
                 {overallHeadline(result.statusLabel)}
               </p>
               <p style={{ margin: "8px 0 0", color: "#222", fontSize: 14 }}>{result.summary}</p>
