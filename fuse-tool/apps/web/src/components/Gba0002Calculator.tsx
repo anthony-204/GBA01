@@ -16,14 +16,14 @@ const CHANGELOG: { version: string; date: string; items: string[] }[] = [
     version: "1.1.2",
     date: "15/07/2026",
     items: [
-      "When MachinesOnSite column Q is missing, users can enter either approved starter power at cut-off voltage or an approved peak current cut-off.",
+      "When the starter peak-current value is missing, users can enter either approved starter power at cut-off voltage or an approved peak current cut-off.",
     ],
   },
   {
     version: "1.1.1",
     date: "15/07/2026",
     items: [
-      "Added an approved starter peak-current limit input when MachinesOnSite column Q is missing or invalid. The Results sheet is output only and is not used as machine input data.",
+      "Added an approved starter peak-current limit input when the stored limit is missing or invalid. Calculated results are not used as machine input data.",
     ],
   },
   {
@@ -37,9 +37,9 @@ const CHANGELOG: { version: string; date: string; items: string[] }[] = [
     version: "1.1",
     date: "14/07/2026",
     items: [
-      'Switched "Peak continuous current during cranking (A)" (column T) to theoretical "Peak current cut off(A) from power and efficiency calculation" (column Q).',
+      'Switched from measured peak continuous cranking current to the theoretical peak current cut-off calculated from power and efficiency.',
       "Version 1.1 now checks: battery voltage vs 16 V minimum, measured cranking (T) vs limit (Q), measured cranking time (X) vs 5 s.",
-      "Database: 16 V cutoff assumed for blank data points and column Q derived from power and efficiency where missing.",
+      "Database: 16 V cut-off assumed for blank data points and peak current derived from power and efficiency where possible.",
       "Fixed cable upgrade (Condition 2) using Cable_Capacity k-factor on each row.",
       "Results now show the manufacturer and output labels include also units.",
     ],
@@ -296,7 +296,7 @@ export function Gba0002Calculator() {
               </label>
             )}
             <p style={{ margin: "6px 0 0", fontSize: 12, color: "#744210" }}>
-              MachinesOnSite column Q is missing or invalid. Use approved manufacturer, machine, or site data only.
+              The starter peak-current data is missing or invalid. Use approved manufacturer, machine, or site data only.
             </p>
           </div>
         )}

@@ -245,7 +245,7 @@ export function calculateGba0002(
     return failResult(
       inputs,
       "DATA MISSING",
-      "Required machine data is missing from MachinesOnSite (including column Q starter current).",
+      "Required starter or machine data is missing.",
       partialDerived({
         measuredStarterCrankingA: measuredCrankingA,
         measuredCrankingTimeS: measuredCrankingTimeS,
