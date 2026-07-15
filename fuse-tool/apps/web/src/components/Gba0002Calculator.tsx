@@ -86,6 +86,7 @@ export function Gba0002Calculator() {
   const [batteryV, setBatteryV] = useState("20");
   const [operatingTemp, setOperatingTemp] = useState("60");
   const [starterPeakCurrentLimit, setStarterPeakCurrentLimit] = useState("");
+  const [showPeakLimitInput, setShowPeakLimitInput] = useState(false);
   const [result, setResult] = useState<Gba0002Result | null>(null);
   const [inputError, setInputError] = useState<string | null>(null);
   const [showChangelog, setShowChangelog] = useState(false);
@@ -99,20 +100,24 @@ export function Gba0002Calculator() {
     const battery = Number(batteryV);
     const temp = Number(operatingTemp);
     const enteredPeakLimit = Number(starterPeakCurrentLimit);
-    if (needsPeakLimit && (!Number.isFinite(enteredPeakLimit) || enteredPeakLimit <= 0)) {
+    if (
+      needsPeakLimit &&
+      showPeakLimitInput &&
+      (!Number.isFinite(enteredPeakLimit) || enteredPeakLimit <= 0)
+    ) {
       setInputError("Enter an approved starter peak current limit greater than 0 A.");
-      setResult(null);
       return;
     }
-    setResult(
-      calculateGba0002(db, {
-        modelId,
-        safetyFactorPercent: safetyFactor,
-        batteryVoltageDuringCrankingV: battery,
-        operatingTempC: temp,
-        starterPeakCurrentLimitA: needsPeakLimit ? enteredPeakLimit : undefined,
-      }),
-    );
+    const nextResult = calculateGba0002(db, {
+      modelId,
+      safetyFactorPercent: safetyFactor,
+      batteryVoltageDuringCrankingV: battery,
+      operatingTempC: temp,
+      starterPeakCurrentLimitA:
+        needsPeakLimit && showPeakLimitInput ? enteredPeakLimit : undefined,
+    });
+    setResult(nextResult);
+    if (needsPeakLimit && nextResult.blocked) setShowPeakLimitInput(true);
   }
 
   return (
@@ -178,6 +183,7 @@ export function Gba0002Calculator() {
             onChange={(e) => {
               setModelId(e.target.value);
               setStarterPeakCurrentLimit("");
+              setShowPeakLimitInput(false);
               setInputError(null);
               setResult(null);
             }}
@@ -207,7 +213,7 @@ export function Gba0002Calculator() {
           />
         </label>
 
-        {needsPeakLimit && (
+        {needsPeakLimit && showPeakLimitInput && (
           <div style={{ marginBottom: 8, padding: 10, border: "1px solid #b7791f", background: "#fffaf0" }}>
             <label style={{ display: "block", color: "#000" }}>
               Starter peak current limit (A)
