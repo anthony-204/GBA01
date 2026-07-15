@@ -4,41 +4,49 @@ setlocal EnableExtensions
 REM ============================================================================
 REM  Redeploy a collaborator branch on Vercel (Hobby / private repo).
 REM
-REM  What this does:
-REM    1. Stashes your local work
-REM    2. Fetches and resets to origin/<branch>
-REM    3. Creates an empty commit (no file changes)
-REM    4. Pushes it so Vercel can deploy from YOUR account
-REM    5. Switches back and restores your stash
+REM  This script is tracked on branch v1_testing. When it switches to
+REM  another branch (e.g. v1_nat), Git removes this file from disk.
+REM  Fix: copy itself to %%TEMP%% and re-run from there, then ALWAYS
+REM  switch back to v1_testing so the .bat reappears for next use.
 REM
-REM  Usage (double-click or from Command Prompt):
-REM    REDEPLOY_VERCEL_BRANCH.bat
-REM    REDEPLOY_VERCEL_BRANCH.bat v1_nat
+REM  Usage:
+REM    Double-click REDEPLOY_VERCEL_BRANCH.bat
+REM    OR:  REDEPLOY_VERCEL_BRANCH.bat
+REM    OR:  REDEPLOY_VERCEL_BRANCH.bat v1_nat
 REM
-REM  Default branch: v1_nat
-REM  Location: repo root (D:\GB Engineering\REDEPLOY_VERCEL_BRANCH.bat)
+REM  Default target: v1_nat
+REM  Always returns to: v1_testing
 REM ============================================================================
 
-set "BRANCH=%~1"
-if "%BRANCH%"=="" set "BRANCH=v1_nat"
+set "TARGET_BRANCH=%~1"
+if "%TARGET_BRANCH%"=="" set "TARGET_BRANCH=v1_nat"
+set "HOME_BRANCH=v1_testing"
+set "REPO=D:\GB Engineering"
 
-REM This file lives at the repo root.
-cd /d "%~dp0"
+REM Re-launch from TEMP so "git switch" cannot delete this running script.
+if /I not "%~dp0"=="%TEMP%\" (
+  copy /Y "%~f0" "%TEMP%\REDEPLOY_VERCEL_BRANCH.bat" >nul
+  if errorlevel 1 (
+    echo Failed to copy script to TEMP.
+    pause
+    exit /b 1
+  )
+  call "%TEMP%\REDEPLOY_VERCEL_BRANCH.bat" %*
+  exit /b %ERRORLEVEL%
+)
+
+REM --- Running from TEMP from here ---
+
+if not exist "%REPO%\.git" (
+  echo Repo not found at %REPO%
+  echo Edit the REPO= line at the top of this script if your clone path differs.
+  pause
+  exit /b 1
+)
+
+cd /d "%REPO%"
 if errorlevel 1 (
-  echo Failed to change to repo root: %~dp0
-  pause
-  exit /b 1
-)
-
-if not exist ".git" (
-  echo No .git folder found. Put this .bat in the GB Engineering repo root.
-  pause
-  exit /b 1
-)
-
-for /f "delims=" %%b in ('git branch --show-current 2^>nul') do set "CURRENT_BRANCH=%%b"
-if "%CURRENT_BRANCH%"=="" (
-  echo Could not determine current branch.
+  echo Failed to cd to %REPO%
   pause
   exit /b 1
 )
@@ -47,73 +55,80 @@ echo.
 echo ========================================
 echo  Vercel branch redeploy
 echo ========================================
-echo  Current branch : %CURRENT_BRANCH%
-echo  Target branch  : %BRANCH%
-echo  Repo           : %CD%
+echo  Target branch : %TARGET_BRANCH%
+echo  Return branch : %HOME_BRANCH%
+echo  Repo          : %CD%
 echo ========================================
 echo.
 
 echo [1/6] Stashing local changes (including untracked)...
-git stash push -u -m "auto-stash before Vercel trigger for %BRANCH%"
+git stash push -u -m "auto-stash before Vercel trigger for %TARGET_BRANCH%"
 set "STASHED=0"
-git stash list -1 2>nul | findstr /C:"auto-stash before Vercel trigger for %BRANCH%" >nul
+git stash list -1 2>nul | findstr /C:"auto-stash before Vercel trigger for %TARGET_BRANCH%" >nul
 if not errorlevel 1 set "STASHED=1"
 if "%STASHED%"=="0" echo       (nothing to stash)
 
-echo [2/6] Fetching origin/%BRANCH%...
-git fetch origin %BRANCH%
+echo [2/6] Fetching origin/%TARGET_BRANCH%...
+git fetch origin %TARGET_BRANCH%
 if errorlevel 1 (
   echo Fetch failed.
-  goto :restore
+  goto :go_home
 )
 
-echo [3/6] Switching to %BRANCH%...
-git switch %BRANCH%
+echo [3/6] Switching to %TARGET_BRANCH%...
+git switch %TARGET_BRANCH%
 if errorlevel 1 (
-  echo Switch failed. Try: git fetch origin %BRANCH%
-  goto :restore
+  echo Switch to %TARGET_BRANCH% failed.
+  goto :go_home
 )
 
-echo [4/6] Resetting to origin/%BRANCH%...
-git reset --hard origin/%BRANCH%
+echo [4/6] Resetting to origin/%TARGET_BRANCH%...
+git reset --hard origin/%TARGET_BRANCH%
 if errorlevel 1 (
   echo Reset failed.
-  goto :restore_switch
+  goto :go_home
 )
 
 echo [5/6] Creating empty commit...
 git commit --allow-empty -m "Trigger Vercel preview deployment"
 if errorlevel 1 (
   echo Empty commit failed.
-  goto :restore_switch
+  goto :go_home
 )
 
-echo [6/6] Pushing origin/%BRANCH%...
-git push origin %BRANCH%
+echo [6/6] Pushing origin/%TARGET_BRANCH%...
+git push origin %TARGET_BRANCH%
 if errorlevel 1 (
   echo Push failed.
-  goto :restore_switch
+  goto :go_home
 )
 
 echo.
-echo SUCCESS: Empty commit pushed on %BRANCH%.
+echo SUCCESS: Empty commit pushed on %TARGET_BRANCH%.
 echo Check Vercel for a new preview deployment.
 echo.
-goto :restore_switch
 
-:restore_switch
-echo Switching back to %CURRENT_BRANCH%...
-git switch "%CURRENT_BRANCH%"
+:go_home
+echo.
+echo Returning to %HOME_BRANCH% (so this .bat stays available)...
+git fetch origin %HOME_BRANCH% >nul 2>&1
+git switch %HOME_BRANCH%
+if errorlevel 1 (
+  echo WARNING: could not switch to %HOME_BRANCH%.
+  echo Run manually: git switch %HOME_BRANCH%
+  pause
+  exit /b 1
+)
 
-:restore
 if "%STASHED%"=="1" (
-  echo Restoring stashed work...
+  echo Restoring stashed work onto %HOME_BRANCH%...
   git stash pop
 )
 
 echo.
 echo Done. Current branch:
 git branch --show-current
+echo Batch file: %REPO%\REDEPLOY_VERCEL_BRANCH.bat
 echo.
 pause
 exit /b 0
