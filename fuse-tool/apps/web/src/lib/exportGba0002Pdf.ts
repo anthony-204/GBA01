@@ -99,11 +99,8 @@ export function exportGba0002Pdf(result: Gba0002Result, appVersion: string): voi
   line("Manufacturer", dash(result.manufacturer));
   line("Battery voltage during cranking", `${result.inputs.batteryVoltageDuringCrankingV} V`);
   line("Operating temperature", `${result.inputs.operatingTempC} °C`);
-  if (result.inputs.manualPowerAtCutoffKw != null) {
-    line("Starter power at cut-off voltage", `${result.inputs.manualPowerAtCutoffKw} kW`);
-  }
   if (result.derived.starterCrankingCurrentOverridden) {
-    line("Peak current cut-off (supplied or calculated)", fmtAmps(result.derived.starterCrankingCurrentA));
+    line("Peak current cut-off (supplied)", fmtAmps(result.derived.starterCrankingCurrentA));
     line("Stored peak current cut-off", fmtAmps(result.derived.databasePeakCurrentCutoffA));
   } else {
     line("Column Q (database)", fmtAmps(result.derived.starterCrankingCurrentA));

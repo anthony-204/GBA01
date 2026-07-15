@@ -103,16 +103,6 @@ describe("GBA-0002 client v1.1", () => {
     expect(result.blocked).toBe(true);
   });
 
-  it("derives peak current from supplied starter power", () => {
-    const result = calculateGba0002(db, {
-      ...valid,
-      modelId: "69T / ZX650H",
-      manualPowerAtCutoffKw: 4.5,
-    });
-    expect(result.blocked).toBe(false);
-    expect(result.derived.starterCrankingCurrentA).toBe(500);
-  });
-
   it("accepts a supplied peak current cut-off", () => {
     const result = calculateGba0002(db, {
       ...valid,

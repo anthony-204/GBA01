@@ -15,8 +15,6 @@ export interface Gba0002UserInputs {
    * When set to a finite value > 0, replaces the database Q for sizing and T≤Q checks.
    */
   manualPeakCurrentCutoffA?: number | null;
-  /** Optional approved starter power used to derive the missing peak current cut-off. */
-  manualPowerAtCutoffKw?: number | null;
 }
 
 export type CableRecommendationStatus = "no-change" | "upgraded" | "unsuitable";
