@@ -16,7 +16,7 @@ const CHANGELOG: { version: string; date: string; items: string[] }[] = [
     version: "1.1.1",
     date: "15/07/2026",
     items: [
-      "Added an approved starter peak-current limit input when a machine's stored column Q limit is missing or invalid.",
+      "Added an approved starter peak-current limit input when MachinesOnSite column Q is missing or invalid. The Results sheet is output only and is not used as machine input data.",
     ],
   },
   {
@@ -227,7 +227,7 @@ export function Gba0002Calculator() {
               />
             </label>
             <p style={{ margin: "6px 0 0", fontSize: 12, color: "#744210" }}>
-              The stored limit is missing or invalid. Enter the approved machine or site limit for this calculation.
+              MachinesOnSite column Q is missing or invalid. Enter the approved machine or site limit for this calculation.
             </p>
           </div>
         )}
