@@ -31,7 +31,12 @@ export function exportGba0002Pdf(result: Gba0002Result, appVersion: string): voi
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const margin = 14;
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   const maxWidth = pageWidth - margin * 2;
+  /** Fixed label column so bold labels never collide with values. */
+  const labelColWidth = 78;
+  const valueX = margin + labelColWidth;
+  const valueWidth = maxWidth - labelColWidth;
   let y = margin;
 
   const now = new Date();
@@ -47,7 +52,7 @@ export function exportGba0002Pdf(result: Gba0002Result, appVersion: string): voi
   });
 
   const ensureSpace = (neededMm: number) => {
-    if (y + neededMm > doc.internal.pageSize.getHeight() - margin) {
+    if (y + neededMm > pageHeight - margin) {
       doc.addPage();
       y = margin;
     }
@@ -62,15 +67,18 @@ export function exportGba0002Pdf(result: Gba0002Result, appVersion: string): voi
   };
 
   const line = (label: string, value: string) => {
-    ensureSpace(7);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text(`${label}:`, margin, y);
+    const labelLines = doc.splitTextToSize(`${label}:`, labelColWidth - 2);
     doc.setFont("helvetica", "normal");
-    const labelWidth = doc.getTextWidth(`${label}: `);
-    const lines = doc.splitTextToSize(value, maxWidth - labelWidth);
-    doc.text(lines, margin + labelWidth, y);
-    y += Math.max(6, lines.length * 5);
+    const valueLines = doc.splitTextToSize(value, valueWidth);
+    const rows = Math.max(labelLines.length, valueLines.length);
+    ensureSpace(rows * 5 + 2);
+    doc.setFont("helvetica", "bold");
+    doc.text(labelLines, margin, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(valueLines, valueX, y);
+    y += rows * 5 + 1.5;
   };
 
   doc.setFont("helvetica", "bold");
@@ -92,10 +100,7 @@ export function exportGba0002Pdf(result: Gba0002Result, appVersion: string): voi
   line("Battery voltage during cranking", `${result.inputs.batteryVoltageDuringCrankingV} V`);
   line("Operating temperature", `${result.inputs.operatingTempC} °C`);
   if (result.derived.starterCrankingCurrentOverridden) {
-    line(
-      "Column Q (manual override)",
-      fmtAmps(result.derived.starterCrankingCurrentA),
-    );
+    line("Column Q (manual override)", fmtAmps(result.derived.starterCrankingCurrentA));
     line("Column Q (database)", fmtAmps(result.derived.databasePeakCurrentCutoffA));
   } else {
     line("Column Q (database)", fmtAmps(result.derived.starterCrankingCurrentA));

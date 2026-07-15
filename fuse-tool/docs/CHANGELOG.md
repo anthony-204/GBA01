@@ -3,7 +3,9 @@
 ## Version 1.2 — 14/07/2026
 
 - Export calculation result as PDF (date/time, inputs, outputs, derived details).
-- Optional manual entry for column Q (peak current cut-off) to override the database value for sizing.
+- Optional manual entry for column Q (peak current cut-off) to override the database value for sizing — shown only after a non-PASS result.
+- Field-use UI: traffic-light status, cable/fuse result cards, detailed checks, expandable explanations, disclaimer.
+- PDF label/value layout uses a fixed column so text no longer overlaps.
 
 ## Version 1.1 — 14/07/2026
 
