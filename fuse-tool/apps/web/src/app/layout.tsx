@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "GB Fuse & Cable Tool",
-  description: "Fleet fuse and cable protection calculator — Phase 1",
+  description: "Fleet fuse and cable protection calculator -- Phase 1",
 };
 
 export const viewport: Viewport = {

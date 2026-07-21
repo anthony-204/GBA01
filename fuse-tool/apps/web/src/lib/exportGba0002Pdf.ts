@@ -2,22 +2,22 @@ import { jsPDF } from "jspdf";
 import type { Gba0002Result } from "@fuse-tool/engine";
 
 function dash(value: string | number | null | undefined): string {
-  if (value === null || value === undefined || value === "") return "—";
+  if (value === null || value === undefined || value === "") return "--";
   return String(value);
 }
 
 function fmtAmps(a: number | null | undefined): string {
-  if (a == null) return "—";
+  if (a == null) return "--";
   return `${a} A`;
 }
 
 function fmtLength(m: number | null | undefined): string {
-  if (m == null) return "—";
+  if (m == null) return "--";
   return `${m} m`;
 }
 
 function fmtTemp(c: string | number | null | undefined): string {
-  if (c == null || c === "—") return "—";
+  if (c == null || c === "--") return "--";
   const s = String(c);
   if (s.includes("°C")) return s;
   if (/^-?\d+(\.\d+)?$/.test(s.trim())) return `${s} °C`;
@@ -120,7 +120,7 @@ export function exportGba0002Pdf(result: Gba0002Result, appVersion: string): voi
   line("Suggested fuse size", fmtAmps(result.fuse.suggestedFuseSizeA));
   line(
     "Fuse make and part number",
-    [result.fuse.fuseMakeModel, result.fuse.fusePartNumber].filter(Boolean).join(" · ") || "—",
+    [result.fuse.fuseMakeModel, result.fuse.fusePartNumber].filter(Boolean).join(" · ") || "--",
   );
   line("Fuse operating temperature", fmtTemp(result.fuse.fuseOperatingTempC));
 
@@ -131,7 +131,7 @@ export function exportGba0002Pdf(result: Gba0002Result, appVersion: string): voi
   line(
     "Measured cranking time X",
     result.derived.measuredCrankingTimeS == null
-      ? "—"
+      ? "--"
       : `${result.derived.measuredCrankingTimeS} s`,
   );
   line("Alternator continuous current", fmtAmps(result.derived.alternatorContinuousA));
@@ -139,21 +139,21 @@ export function exportGba0002Pdf(result: Gba0002Result, appVersion: string): voi
   line(
     "Cable size",
     result.derived.existingCableSizeMm2 == null
-      ? "—"
+      ? "--"
       : `${result.derived.existingCableSizeMm2} mm²`,
   );
   line("K-factor", dash(result.derived.kFactor));
   line(
     "Cable resistance",
     result.derived.cableResistanceOhmPerKm == null
-      ? "—"
+      ? "--"
       : `${result.derived.cableResistanceOhmPerKm} Ω/km`,
   );
   line("Max allowable voltage drop", `${result.derived.maxAllowableVoltageDropV} V`);
   line(
     "Thermal withstand time",
     result.cable.cableThermalWithstandTimeS == null
-      ? "—"
+      ? "--"
       : `${result.cable.cableThermalWithstandTimeS} s`,
   );
   line("Required fuse current", fmtAmps(result.derived.requiredFuseCurrentA));
