@@ -1,67 +1,146 @@
-# GB Auto — Fuse & Cable Protection Tool
+# GB Auto -- Fuse & Cable Protection Tool
 
-Monorepo for the GB Auto fuse and cable protection engineering tools, derived from the `Fuse_GUI_APP.xlsx` workbook and GBA-0002 client specification.
+Client handover package for the **GBA-0002 Fuse & Cable Protection Tool** (field-use web calculator).
 
-**GitHub:** [anthony-204/GBA01](https://github.com/anthony-204/GBA01)
+This repository contains the calculation engine, fleet data, and web application used to check starter-circuit cable and fuse sizing against the GBA-0002 specification.
 
-## Repository layout
+## What you receive
 
+| Item | Location |
+|------|----------|
+| Web application (Next.js) | `fuse-tool/apps/web/` |
+| Calculation engine | `fuse-tool/packages/engine/` |
+| Fleet and library data | `fuse-tool/data/` |
+| Client documentation | `fuse-tool/docs/` |
+| Source Excel workbook | `Resources/Tool/Fuse_GUI_APP.xlsx` |
+
+**Current client app version:** 1.2.0 (see `fuse-tool/docs/CHANGELOG.md`).
+
+## Prerequisites (any computer)
+
+Install these once on the machine that will run the tool:
+
+1. **Node.js 20 LTS** (minimum 18)  
+   Download from [https://nodejs.org](https://nodejs.org) and run the installer.  
+   Confirm in a terminal:
+
+   ```bash
+   node -v
+   npm -v
+   ```
+
+2. **Python 3.10+** (optional -- only needed if you re-import data from Excel)
+
+   ```bash
+   python --version
+   pip install openpyxl
+   ```
+
+## Run the application locally
+
+Open a terminal (Command Prompt, PowerShell, or Terminal) in the project folder.
+
+### Windows
+
+```powershell
+cd fuse-tool
+npm install
+npm run patch:machines-v1.1
+npm run build
+npm run dev
 ```
-GB Engineering/
-├── README.md                 ← this file (branch guide)
-├── fuse-tool/                ← application monorepo
-│   ├── apps/web/             ← Next.js field UI (Vercel-ready)
-│   ├── packages/engine/      ← calculation engine + tests
-│   ├── data/bundle.json      ← normalized fleet / library data
-│   └── docs/                 ← specifications, validation evidence, deploy notes
-├── Resources/Tool/           ← authoritative Excel workbook
-└── docs/                     ← project-level analysis and plans
-```
 
-## Branches
-
-| Branch | Purpose | Audience |
-|--------|---------|----------|
-| **`main`** | Full **Version 2 engineering tool** — 37-vehicle fleet, library + manual entry, completeness gate | Internal engineering |
-| **`feature/excel-manual-presets`** | Manual-entry Excel preset toggle | Engineering / QA |
-| **`client/v1`** | **Active client prototype** (app v1.1) — GBA-0002, 4 inputs, all v1.1-calculable machines, v1.1 checks, column Q sizing | Client / field trial |
-| **`client/old1`** | *Deprecated* — former `client/v1` (trace UI deliverable) | Archive |
-| **`client/old2`** | *Deprecated* — former `client/v2` (validation guardrails) | Archive |
-
-`client/v0` has been **renamed to `client/v1`** (July 2026). Deploy the client tool from **`client/v1`**.
-
-### Which branch should I use?
-
-- **Current GBA-0002 client prototype (v1.1):** `client/v1`
-- **Full fleet / manual what-if:** `main`
-- **Legacy trace UI or validation builds:** `client/old1`, `client/old2`
-
-## Quick start (`client/v1`)
+### macOS / Linux
 
 ```bash
 cd fuse-tool
 npm install
 npm run patch:machines-v1.1
 npm run build
-npm test --workspace=@fuse-tool/engine -- gba0002
-npm run dev --workspace=@fuse-tool/web
+npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Then open a browser at **http://localhost:3000**.
 
-### Deploy (Vercel)
+You should see the **GB Auto Fuse & Cable Protection Tool** with machine inputs and a **Calculate Recommendation** button. You must tick the design-aid disclaimer checkbox before calculating.
 
-See `fuse-tool/docs/DEPLOY_VERCEL.md` — connect branch **`client/v1`**, root directory `fuse-tool/apps/web`.
+### Stop the local server
 
-## Client app version history
+Press `Ctrl+C` in the terminal.
 
-See `fuse-tool/docs/CHANGELOG.md`.
+## Production build (local or server)
 
-| App version | Date | Branch | Highlights |
-|-------------|------|--------|------------|
-| **1.1** | 14/07/2026 | `client/v1` | Column Q sizing; battery/starter/time checks; manufacturer; upgrade fix |
-| **1.0** | June 2026 | `client/v0` (renamed) | Initial nine-machine prototype |
+To build and run the optimised production version on the same machine:
+
+```bash
+cd fuse-tool
+npm install
+npm run patch:machines-v1.1
+npm run build
+npm run start -w @fuse-tool/web
+```
+
+Open **http://localhost:3000** (default port 3000).
+
+## Run tests (optional)
+
+```bash
+cd fuse-tool
+npm install
+npm test --workspace=@fuse-tool/engine -- gba0002
+```
+
+## Deploy to the web (Vercel)
+
+See **`fuse-tool/docs/DEPLOY_VERCEL.md`** for hosting the static Next.js app on Vercel. No API keys or database are required -- calculations run entirely in the browser.
+
+## Project layout
+
+```
+GB Engineering/
+├── README.md                 <- this file (handover guide)
+├── fuse-tool/                <- application monorepo
+│   ├── apps/web/             <- web UI
+│   ├── packages/engine/      <- calculation engine + tests
+│   ├── data/bundle.json      <- fleet / library data (embedded at build)
+│   └── docs/                 <- specifications, changelog, deploy notes
+├── Resources/Tool/           <- authoritative Excel workbook
+└── docs/                     <- project-level notes
+```
+
+## Key documentation
+
+| Document | Purpose |
+|----------|---------|
+| `fuse-tool/docs/CLIENT_V1.md` | Client prototype overview |
+| `fuse-tool/docs/CHANGELOG.md` | App version history |
+| `fuse-tool/docs/V0_CALCULATIONS.md` | Formula reference |
+| `fuse-tool/docs/DATA_REPORT.md` | Data inventory and quality notes |
+| `fuse-tool/docs/GBA0002_SPEC_CLARIFICATION_MEMO.md` | Open specification questions |
+
+## Updating fleet data from Excel (optional)
+
+If the MachinesOnSite workbook is updated:
+
+```bash
+cd fuse-tool
+pip install openpyxl
+npm run import:data
+npm run patch:machines-v1.1
+npm run build
+```
+
+Then restart the web app (`npm run dev` or redeploy).
 
 ## Disclaimer
 
-All branches produce **design aids**. Final cable and fuse selections require qualified engineering approval against AS/NZS standards and manufacturer datasheets.
+All outputs from this tool are **design aids only**. Final cable and fuse selections must be reviewed against applicable standards, manufacturer datasheets, site requirements and **approved by a qualified engineer** before implementation. The web app requires users to confirm this before running a calculation.
+
+## Support files in repo root
+
+| File | Purpose |
+|------|---------|
+| `REDEPLOY_VERCEL_BRANCH.bat` | Trigger a Vercel redeploy for the `v1_nat` branch |
+| `REDEPLOY_V1_TESTING.bat` | Trigger a Vercel redeploy for the `v1_testing` branch |
+
+These are optional deployment helpers for maintainers. They are not required to run the app locally.

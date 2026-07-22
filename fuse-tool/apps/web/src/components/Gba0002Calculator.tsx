@@ -20,6 +20,9 @@ import {
 
 const APP_VERSION = "1.2.0";
 
+const DESIGN_AID_DISCLAIMER =
+  "This tool is a design aid only. Final cable and fuse selection must be reviewed against applicable standards, manufacturer datasheets, site requirements and approved by a qualified engineer before implementation.";
+
 const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   {
     version: "1.0",
@@ -340,6 +343,7 @@ export function Gba0002Calculator() {
   const [manualQA, setManualQA] = useState("");
   const [result, setResult] = useState<Gba0002Result | null>(null);
   const [showChangelog, setShowChangelog] = useState(false);
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [calcError, setCalcError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{
     battery?: string;
@@ -358,6 +362,10 @@ export function Gba0002Calculator() {
 
   function runCalculate() {
     setCalcError(null);
+    if (!disclaimerAccepted) {
+      setCalcError("You must confirm the design-aid disclaimer before calculating.");
+      return;
+    }
     const errors: { battery?: string; temp?: string; recovery?: string } = {};
     const battery = Number(batteryV);
     const temp = Number(operatingTemp);
@@ -572,7 +580,61 @@ export function Gba0002Calculator() {
           <p style={{ margin: "10px 0 0", color: "#c62828", fontSize: 14, fontWeight: 600 }}>{calcError}</p>
         )}
 
-        <button type="button" onClick={runCalculate} style={buttonPrimary}>
+        <div
+          style={{
+            marginTop: 16,
+            padding: 14,
+            border: "2px solid #f9a825",
+            background: "#fff8e1",
+            borderRadius: 4,
+          }}
+        >
+          <p style={{ margin: "0 0 10px", fontWeight: 800, fontSize: 15, color: "#e65100" }}>
+            Important -- design aid only
+          </p>
+          <p style={{ margin: "0 0 12px", fontSize: 14, lineHeight: 1.5, color: "#333" }}>
+            {DESIGN_AID_DISCLAIMER}
+          </p>
+          <label
+            style={{
+              display: "flex",
+              gap: 10,
+              alignItems: "flex-start",
+              fontWeight: 600,
+              fontSize: 14,
+              color: "#111",
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={disclaimerAccepted}
+              onChange={(e) => {
+                setDisclaimerAccepted(e.target.checked);
+                if (e.target.checked && calcError?.includes("disclaimer")) {
+                  setCalcError(null);
+                }
+              }}
+              style={{ marginTop: 3, width: 18, height: 18, flexShrink: 0 }}
+            />
+            <span>
+              I understand that this tool is purely a design aid and that all final cable and fuse sizing must
+              be reviewed against applicable standards, manufacturer datasheets, site requirements and approved
+              by a qualified engineer before implementation.
+            </span>
+          </label>
+        </div>
+
+        <button
+          type="button"
+          onClick={runCalculate}
+          disabled={!disclaimerAccepted}
+          style={{
+            ...buttonPrimary,
+            opacity: disclaimerAccepted ? 1 : 0.55,
+            cursor: disclaimerAccepted ? "pointer" : "not-allowed",
+          }}
+        >
           Calculate Recommendation
         </button>
         <button
@@ -772,9 +834,7 @@ Required fuse current (A): ${result.derived.requiredFuseCurrentA ?? "--"}`}
           lineHeight: 1.45,
         }}
       >
-        This tool is a design aid only. Final cable and fuse selection must be reviewed against applicable
-        standards, manufacturer datasheets, site requirements and approved by a qualified engineer before
-        implementation.
+        {DESIGN_AID_DISCLAIMER}
       </p>
     </div>
   );

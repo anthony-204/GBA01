@@ -1,18 +1,18 @@
-# Deploy to Vercel (GBA-0002 client branch)
+# Deploy to Vercel (GBA-0002 client app)
 
 ## Prerequisites
 
-- Branch **`feature/gba0002-client-deliverable`** pushed to GitHub (`anthony-204/GBA01`)
+- A copy of this project with the client app on branch **`v1_testing`** or **`client/v1`**
 - Vercel account (free tier is fine): [https://vercel.com](https://vercel.com)
 
-You do **not** need to merge to `main` first. Vercel can deploy any branch as a **preview** or set this branch as **production**.
+You do **not** need a backend server. The app is a static Next.js build with client-side calculations and embedded fleet data.
 
 ---
 
-## Option A — GitHub import (recommended)
+## Option A -- Vercel Git import (recommended)
 
-1. Sign in at [vercel.com](https://vercel.com) with GitHub.
-2. **Add New… → Project** → import **`anthony-204/GBA01`**.
+1. Sign in at [vercel.com](https://vercel.com).
+2. **Add New -> Project** and import your Git repository.
 3. **Configure Project:**
 
    | Setting | Value |
@@ -21,30 +21,25 @@ You do **not** need to merge to `main` first. Vercel can deploy any branch as a 
    | **Root Directory** | `fuse-tool/apps/web` |
    | **Install Command** | `cd ../.. && npm install` |
    | **Build Command** | `cd ../.. && npm run build` |
-   | **Output Directory** | *(leave default — Next.js)* |
+   | **Output Directory** | *(leave default -- Next.js)* |
 
    These match `fuse-tool/apps/web/vercel.json`.
 
 4. **Environment variables:** none required.
-5. Click **Deploy** (first deploy uses the branch you select in step 6).
-6. After the project exists: **Settings → Git → Production Branch**  
-   - Leave as `main` for previews only, **or**  
-   - Set to **`feature/gba0002-client-deliverable`** to make this branch the live URL.
+5. Click **Deploy** (first deploy uses the branch you select).
+6. After the project exists: **Settings -> Git -> Production Branch**  
+   Set to **`v1_testing`** (or your active client branch).
 
-7. **Deploy this branch now:**  
-   **Deployments** → **Create Deployment** → branch **`feature/gba0002-client-deliverable`** → Deploy.
+7. **Deploy a branch manually:**  
+   **Deployments** -> **Create Deployment** -> select branch -> Deploy.
 
-Every `git push` to that branch triggers a new deployment automatically.
+Every push to the production branch triggers a new deployment automatically.
 
 ---
 
-## Option B — Vercel CLI (from your machine)
+## Option B -- Vercel CLI (from your machine)
 
 ```powershell
-cd "d:\GB Engineering"
-git checkout feature/gba0002-client-deliverable
-git pull origin feature/gba0002-client-deliverable
-
 cd fuse-tool\apps\web
 npx vercel login
 npx vercel link
@@ -60,13 +55,14 @@ npx vercel --prod
 ## Local check before deploy
 
 ```powershell
-cd "d:\GB Engineering\fuse-tool"
+cd fuse-tool
 npm install
+npm run patch:machines-v1.1
 npm run build
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — you should see the **GBA-0002** simplified UI (9 machines).
+Open [http://localhost:3000](http://localhost:3000) -- you should see the GB Auto Fuse & Cable Protection Tool.
 
 ---
 
@@ -75,8 +71,8 @@ Open [http://localhost:3000](http://localhost:3000) — you should see the **GBA
 | Issue | Fix |
 |-------|-----|
 | `Cannot find module @fuse-tool/engine` | Ensure **Install/Build** run from monorepo root (`cd ../..` in commands above). |
-| Wrong UI (old V2 tabs) | Confirm Vercel deployed branch **`feature/gba0002-client-deliverable`**, not `main`. |
-| Build fails on Node version | Set **Node.js 20.x** in Project → Settings → General. |
+| Wrong UI or old version | Confirm Vercel deployed the correct client branch (`v1_testing` or `client/v1`). |
+| Build fails on Node version | Set **Node.js 20.x** in Project -> Settings -> General. |
 
 ---
 
