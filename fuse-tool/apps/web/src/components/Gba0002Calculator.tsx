@@ -33,13 +33,13 @@ const CHANGELOG: { version: string; date: string; items: string[] }[] = [
   },
   {
     version: "1.1",
-    date: "14/07/2026",
+    date: "08/07/2026",
     items: [
       'Switched "Peak continuous current during cranking (A)" (column T) to theoretical "Peak current cut off(A) from power and efficiency calculation" (column Q).',
       "Version 1.1 now checks: battery voltage vs 16 V minimum, measured cranking (T) vs limit (Q), measured cranking time (X) vs 5 s.",
       "Database: 16 V cutoff assumed for blank data points and column Q derived from power and efficiency where missing.",
       "Fixed cable upgrade (Condition 2) using Cable_Capacity k-factor on each row.",
-      "Results now show the manufacturer and output labels include also units.",
+      "Results now show the manufacturer and output labels also include units.",
     ],
   },
   {
@@ -50,6 +50,14 @@ const CHANGELOG: { version: string; date: string; items: string[] }[] = [
       "Optional manual entry for column Q (peak current cut-off) after a non-PASS result, to override the database value for sizing.",
       "Field-use UI: traffic-light status, result cards, expandable explanations.",
       "PDF label/value layout uses a fixed column so text no longer overlaps.",
+    ],
+  },
+    {
+    version: "1.3",
+    date: "22/07/2026",
+    items: [
+      "Added GB Auto logo",
+      "Improved the disclaimer by adding a mandatory one that users must acknowledge before accessing the application and generating cable sizing and fuse protection recommendations",
     ],
   },
 ];
