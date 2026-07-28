@@ -18,7 +18,7 @@ import {
   type UiStatusTone,
 } from "@/components/StatusBadge";
 
-const APP_VERSION = "1.2.0";
+const APP_VERSION = "1.3.0";
 
 const DESIGN_AID_DISCLAIMER =
   "This tool is a design aid only. Final cable and fuse selection must be reviewed against applicable standards, manufacturer datasheets, site requirements and approved by a qualified engineer before implementation.";
