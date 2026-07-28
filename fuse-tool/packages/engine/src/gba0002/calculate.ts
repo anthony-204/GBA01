@@ -1,6 +1,4 @@
-/**
- * GBA-0002 client calculator — v1.1 (column Q sizing, starter/time checks).
- */
+// GBA-0002 client calculator (column Q sizing)
 
 import type { CableCapacityRow, FuseToolDatabase, MachineRecord } from "../types.js";
 import { parseNumber } from "../parseValue.js";
@@ -174,7 +172,7 @@ export function calculateGba0002(
     !Number.isFinite(inputs.batteryVoltageDuringCrankingV) ||
     !Number.isFinite(inputs.operatingTempC)
   ) {
-    return failResult(inputs, "FAIL", "Invalid input — check safety factor, battery voltage, and temperature.");
+    return failResult(inputs, "FAIL", "Invalid input -- check safety factor, battery voltage, and temperature.");
   }
 
   if (inputs.batteryVoltageDuringCrankingV <= 0) {
@@ -366,7 +364,7 @@ export function calculateGba0002(
       cableThermalWithstandTimeS: round2(thermalTime),
       thermalWithstandPass: true,
       maxAllowableOneWayLengthM: maxLen !== null ? round2(maxLen) : null,
-      operatingTempRangeC: String(machine.operatingTempC ?? "—"),
+      operatingTempRangeC: String(machine.operatingTempC ?? "--"),
       operatingTempPass: true,
       message: formatCableDisplay("no-change", cableType, cableSize),
     };
@@ -385,7 +383,7 @@ export function calculateGba0002(
         cableThermalWithstandTimeS: round2(upThermal),
         thermalWithstandPass: upThermal >= GBA0002_CRANKING_TIME_S,
         maxAllowableOneWayLengthM: maxLen !== null ? round2(maxLen) : null,
-        operatingTempRangeC: String(upgrade.maxConductorTempC ?? "—"),
+        operatingTempRangeC: String(upgrade.maxConductorTempC ?? "--"),
         operatingTempPass: true,
         message: formatCableDisplay("upgraded", upgrade.cableType, upgrade.sizeMm2),
       };

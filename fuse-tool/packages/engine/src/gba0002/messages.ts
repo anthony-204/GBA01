@@ -1,6 +1,4 @@
-/**
- * GBA-0002 client v1.1 — user-facing status messages (spec Version 1.1).
- */
+// user-facing fail messages from the GBA-0002 spec
 
 export const MSG_BATTERY_VOLTAGE_LOW =
   "Battery voltage during cranking is below the minimum required value. Charge the battery and re-run the test. If the battery remains below the minimum limit after charging, inspect the battery, cable connections and starter circuit. Replace the battery if it fails battery testing.";

@@ -2,7 +2,7 @@
   "name": "fuse-tool",
   "version": "0.2.0",
   "private": true,
-  "description": "Fleet fuse and cable protection calculator — Phase 1 implementation",
+  "description": "GB Auto fuse and cable protection calculator",
   "workspaces": [
     "packages/*",
     "apps/*"

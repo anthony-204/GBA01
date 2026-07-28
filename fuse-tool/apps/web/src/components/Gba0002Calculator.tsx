@@ -52,12 +52,13 @@ const CHANGELOG: { version: string; date: string; items: string[] }[] = [
       "PDF label/value layout uses a fixed column so text no longer overlaps.",
     ],
   },
-    {
+  {
     version: "1.3",
     date: "22/07/2026",
     items: [
-      "Added GB Auto logo",
-      "Improved the disclaimer by adding a mandatory one that users must acknowledge before accessing the application and generating cable sizing and fuse protection recommendations.",
+      "Added GB Auto logo.",
+      "Mandatory design-aid disclaimer checkbox before calculation.",
+      "Client handover documentation and project cleanup.",
     ],
   },
 ];

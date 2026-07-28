@@ -1,44 +1,42 @@
 # GB Auto -- Fuse & Cable Protection Tool
 
-Client handover package for the **GBA-0002 Fuse & Cable Protection Tool** (field-use web calculator).
+Client package for the **GBA-0002 Fuse & Cable Protection Tool** (field-use web calculator).
 
-This repository contains the calculation engine, fleet data, and web application used to check starter-circuit cable and fuse sizing against the GBA-0002 specification.
+The project contains the calculation engine, fleet data, and web application used to check starter-circuit cable and fuse sizing against the GBA-0002 specification.
 
-## What you receive
+**Current app version:** 1.3.0 (see `fuse-tool/docs/CHANGELOG.md`).
+
+## What is included
 
 | Item | Location |
 |------|----------|
-| Web application (Next.js) | `fuse-tool/apps/web/` |
+| Web application | `fuse-tool/apps/web/` |
 | Calculation engine | `fuse-tool/packages/engine/` |
 | Fleet and library data | `fuse-tool/data/` |
-| Client documentation | `fuse-tool/docs/` |
+| Documentation | `fuse-tool/docs/` |
 | Source Excel workbook | `Resources/Tool/Fuse_GUI_APP.xlsx` |
 
-**Current client app version:** 1.2.0 (see `fuse-tool/docs/CHANGELOG.md`).
+## Prerequisites
 
-## Prerequisites (any computer)
+Install once on the computer that will run the tool:
 
-Install these once on the machine that will run the tool:
-
-1. **Node.js 20 LTS** (minimum 18)  
-   Download from [https://nodejs.org](https://nodejs.org) and run the installer.  
-   Confirm in a terminal:
+1. **Node.js 20 LTS** (minimum 18) from [https://nodejs.org](https://nodejs.org)
 
    ```bash
    node -v
    npm -v
    ```
 
-2. **Python 3.10+** (optional -- only needed if you re-import data from Excel)
+2. **Python 3.10+** (optional, only needed when re-importing data from Excel)
 
    ```bash
    python --version
    pip install openpyxl
    ```
 
-## Run the application locally
+## Run the application
 
-Open a terminal (Command Prompt, PowerShell, or Terminal) in the project folder.
+Open a terminal in the project folder.
 
 ### Windows
 
@@ -60,17 +58,13 @@ npm run build
 npm run dev
 ```
 
-Then open a browser at **http://localhost:3000**.
+Open a browser at **http://localhost:3000**.
 
-You should see the **GB Auto Fuse & Cable Protection Tool** with machine inputs and a **Calculate Recommendation** button. You must tick the design-aid disclaimer checkbox before calculating.
+Tick the **design-aid disclaimer** checkbox, enter the machine details, then click **Calculate Recommendation**. Use **Export PDF** to save a report if needed.
 
-### Stop the local server
+Press `Ctrl+C` in the terminal to stop the server.
 
-Press `Ctrl+C` in the terminal.
-
-## Production build (local or server)
-
-To build and run the optimised production version on the same machine:
+## Production build on one computer
 
 ```bash
 cd fuse-tool
@@ -80,9 +74,9 @@ npm run build
 npm run start -w @fuse-tool/web
 ```
 
-Open **http://localhost:3000** (default port 3000).
+Open **http://localhost:3000**.
 
-## Run tests (optional)
+## Run tests
 
 ```bash
 cd fuse-tool
@@ -90,37 +84,31 @@ npm install
 npm test --workspace=@fuse-tool/engine -- gba0002
 ```
 
-## Deploy to the web (Vercel)
-
-See **`fuse-tool/docs/DEPLOY_VERCEL.md`** for hosting the static Next.js app on Vercel. No API keys or database are required -- calculations run entirely in the browser.
-
 ## Project layout
 
 ```
 GB Engineering/
-├── README.md                 <- this file (handover guide)
-├── fuse-tool/                <- application monorepo
-│   ├── apps/web/             <- web UI
-│   ├── packages/engine/      <- calculation engine + tests
-│   ├── data/bundle.json      <- fleet / library data (embedded at build)
-│   └── docs/                 <- specifications, changelog, deploy notes
-├── Resources/Tool/           <- authoritative Excel workbook
-└── docs/                     <- project-level notes
+├── README.md
+├── fuse-tool/
+│   ├── apps/web/           # web UI
+│   ├── packages/engine/    # calculation engine + tests
+│   ├── data/               # JSON fleet and library tables
+│   ├── scripts/            # Excel import and data patch
+│   └── docs/               # changelog, calculations, test notes
+└── Resources/Tool/         # original Excel workbook
 ```
 
-## Key documentation
+## Documentation
 
-| Document | Purpose |
-|----------|---------|
-| `fuse-tool/docs/CLIENT_V1.md` | Client prototype overview |
-| `fuse-tool/docs/CHANGELOG.md` | App version history |
-| `fuse-tool/docs/V0_CALCULATIONS.md` | Formula reference |
-| `fuse-tool/docs/DATA_REPORT.md` | Data inventory and quality notes |
-| `fuse-tool/docs/GBA0002_SPEC_CLARIFICATION_MEMO.md` | Open specification questions |
+| File | Purpose |
+|------|---------|
+| `fuse-tool/docs/CHANGELOG.md` | Version history |
+| `fuse-tool/docs/CALCULATIONS.md` | Formula and logic reference |
+| `fuse-tool/docs/TEST_CASES.md` | Example test cases |
 
-## Updating fleet data from Excel (optional)
+## Updating fleet data from Excel
 
-If the MachinesOnSite workbook is updated:
+If `Fuse_GUI_APP.xlsx` is updated:
 
 ```bash
 cd fuse-tool
@@ -130,17 +118,8 @@ npm run patch:machines-v1.1
 npm run build
 ```
 
-Then restart the web app (`npm run dev` or redeploy).
+Restart the web app after rebuilding.
 
 ## Disclaimer
 
-All outputs from this tool are **design aids only**. Final cable and fuse selections must be reviewed against applicable standards, manufacturer datasheets, site requirements and **approved by a qualified engineer** before implementation. The web app requires users to confirm this before running a calculation.
-
-## Support files in repo root
-
-| File | Purpose |
-|------|---------|
-| `REDEPLOY_VERCEL_BRANCH.bat` | Trigger a Vercel redeploy for the `v1_nat` branch |
-| `REDEPLOY_V1_TESTING.bat` | Trigger a Vercel redeploy for the `v1_testing` branch |
-
-These are optional deployment helpers for maintainers. They are not required to run the app locally.
+All outputs are **design aids only**. Final cable and fuse selections must be reviewed against applicable standards, manufacturer datasheets, site requirements and approved by a qualified engineer before implementation.

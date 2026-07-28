@@ -1,6 +1,4 @@
-/**
- * GBA-0002 prototype helpers — temperature parsing and strict K-factor lookup.
- */
+// temperature parsing and strict K-factor lookup
 
 import type { CopperKFactorRow } from "../types.js";
 import { lookupKFactor } from "../lookups.js";
@@ -54,9 +52,9 @@ export function formatCableDisplay(
   if (status === "unsuitable") {
     return "Existing cable is not suitable. An appropriate fit needs to be determined.";
   }
-  if (!cableType || sizeMm2 === null) return "—";
+  if (!cableType || sizeMm2 === null) return "--";
   if (status === "no-change") {
-    return `No change in cable type or size — ${cableType}, ${sizeMm2} mm²`;
+    return `No change in cable type or size -- ${cableType}, ${sizeMm2} mm²`;
   }
   return `${cableType}, ${sizeMm2} mm²`;
 }
@@ -65,7 +63,7 @@ export function requiredFuseCurrentA(alternatorA: number, safetyFactorPercent: n
   return alternatorA * (1 + safetyFactorPercent / 100);
 }
 
-/** Equivalent to (k×S/I)² ≥ crankingTimeS — PDF §7 peak capability form. */
+/** thermal withstand in peak-capability form: (k*S/I)^2 >= crankingTimeS */
 export function cableThermalWithstandPass(
   k: number,
   sizeMm2: number,

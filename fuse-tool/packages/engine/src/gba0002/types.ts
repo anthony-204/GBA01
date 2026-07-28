@@ -1,6 +1,4 @@
-/**
- * GBA-0002 prototype types.
- */
+// GBA-0002 result types
 
 import type { FuseRecord } from "../types.js";
 import type { PrototypeStatus } from "./helpers.js";
