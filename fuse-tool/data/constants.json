@@ -13,7 +13,7 @@
     "AS/NZS 1995:2003 (welding cable duty cycles \u2014 reference)"
   ],
   "notes": [
-    "Constants align with MD6250 Project sheet and User Input defaults.",
+    "Constants from MD6250 Project sheet and User Input defaults.",
     "peakCurrentCutoffA per machine overrides defaultPeakCrankingLimitA when present."
   ]
 }
