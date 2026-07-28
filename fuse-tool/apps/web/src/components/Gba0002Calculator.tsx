@@ -57,7 +57,7 @@ const CHANGELOG: { version: string; date: string; items: string[] }[] = [
     date: "22/07/2026",
     items: [
       "Added GB Auto logo",
-      "Improved the disclaimer by adding a mandatory one that users must acknowledge before accessing the application and generating cable sizing and fuse protection recommendations",
+      "Improved the disclaimer by adding a mandatory one that users must acknowledge before accessing the application and generating cable sizing and fuse protection recommendations.",
     ],
   },
 ];
