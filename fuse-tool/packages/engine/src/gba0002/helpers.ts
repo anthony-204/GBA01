@@ -34,7 +34,7 @@ export function temperatureSupported(userC: number, limit: TemperatureLimit): bo
   return true;
 }
 
-/** K-factor from Copper_k_factor only — no default guess. */
+/** K-factor from Copper_k_factor only; no default guess. */
 export function lookupKFactorStrict(
   cableType: string | undefined,
   kFactors: CopperKFactorRow[],
@@ -52,9 +52,9 @@ export function formatCableDisplay(
   if (status === "unsuitable") {
     return "Existing cable is not suitable. An appropriate fit needs to be determined.";
   }
-  if (!cableType || sizeMm2 === null) return "--";
+  if (!cableType || sizeMm2 === null) return "-";
   if (status === "no-change") {
-    return `No change in cable type or size -- ${cableType}, ${sizeMm2} mm²`;
+    return `No change in cable type or size: ${cableType}, ${sizeMm2} mm²`;
   }
   return `${cableType}, ${sizeMm2} mm²`;
 }

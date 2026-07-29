@@ -1,4 +1,4 @@
-// GBA-0002 result types
+// GBA result types
 
 import type { FuseRecord } from "../types.js";
 import type { PrototypeStatus } from "./helpers.js";
@@ -49,15 +49,15 @@ export interface Gba0002DerivedParameters {
   requiredFuseCurrentA: number | null;
   existingCableSizeMm2: number | null;
   cableResistanceOhmPerKm: number | null;
-  /** Column Q — design / inrush worst-case current used for cable and fuse sizing (A). */
+  /** Column Q: design / inrush worst-case current used for cable and fuse sizing (A). */
   starterCrankingCurrentA: number | null;
   /** True when starterCrankingCurrentA came from manualPeakCurrentCutoffA. */
   starterCrankingCurrentOverridden: boolean;
   /** Database column Q before any manual override (A). */
   databasePeakCurrentCutoffA: number | null;
-  /** Column T — measured peak continuous cranking current (A). */
+  /** Column T, measured peak continuous cranking current (A). */
   measuredStarterCrankingA: number | null;
-  /** Column X — measured cranking time (s). */
+  /** Column X: measured cranking time (s). */
   measuredCrankingTimeS: number | null;
   alternatorContinuousA: number | null;
   cableTypePresent: string | null;

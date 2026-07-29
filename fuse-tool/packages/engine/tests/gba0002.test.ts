@@ -1,5 +1,5 @@
 /**
- * GBA-0002 client v1.1 — tests.
+ * GBA client v1.1: tests.
  */
 
 import { describe, it, expect } from "vitest";
@@ -32,7 +32,7 @@ const valid = {
   operatingTempC: 60,
 };
 
-describe("GBA-0002 client v1.1", () => {
+describe("GBA client v1.1", () => {
   it("loads all machines calculable by v1.1 gates", () => {
     const ids = filterClientMachines(db.machines).map((m) => m.id);
     expect(ids).toContain("120T /EX 1200-7 / EX 2000-7");

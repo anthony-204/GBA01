@@ -179,7 +179,7 @@ export function runFuseSelection(input: FuseSelectionInputs): FuseSelectionOutpu
       value: i2tFuse > i2tRequired ? "YES" : "Marginal / NO",
       message: `Fuse I²t ${i2tFuse} vs required ${i2tRequired} A²s.`,
       specification: "I²t_fuse > I_crank² × t",
-      legacyReference: "GBA-0002 § I2t",
+      legacyReference: "GBA § I2t",
     });
   }
 
@@ -194,7 +194,7 @@ export function runFuseSelection(input: FuseSelectionInputs): FuseSelectionOutpu
         ? `Fuse ${rating} A ≤ cable rating ${input.cableContinuousA} A.`
         : `Fuse ${rating} A exceeds cable rating ${input.cableContinuousA} A — cable under-protected.`,
       specification: "I_fuse_selected ≤ I_cable_continuous (derating not applied in V2)",
-      legacyReference: "GBA-0002 § Fuse protects cable",
+      legacyReference: "GBA § Fuse protects cable",
     });
   } else {
     checks.push({

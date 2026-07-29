@@ -1,5 +1,5 @@
 /**
- * Build PDF-required output block (GBA-0002).
+ * Build PDF-required output block (GBA).
  */
 
 import type { CheckResult, CheckStatus, FuseRecommendation, PdfCableFuseOutputs } from "./types.js";

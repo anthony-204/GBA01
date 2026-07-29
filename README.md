@@ -1,8 +1,8 @@
-# GB Auto -- Fuse & Cable Protection Tool
+# GB Auto: Fuse & Cable Protection Tool
 
-Client package for the **GBA-0002 Fuse & Cable Protection Tool** (field-use web calculator).
+Client package for the **GBA Fuse & Cable Protection Tool** (field-use web calculator).
 
-The project contains the calculation engine, fleet data, and web application used to check starter-circuit cable and fuse sizing against the GBA-0002 specification.
+The project contains the calculation engine, fleet data, and web application used to check starter-circuit cable and fuse sizing against the GBA specification.
 
 **Current app version:** 1.3.0 (see `fuse-tool/docs/CHANGELOG.md`).
 

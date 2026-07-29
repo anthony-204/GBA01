@@ -1,4 +1,4 @@
-# GBA-0002 Prototype Test Cases
+# GBA Prototype Test Cases
 
 | # | Case | Input | Expected |
 |---|------|-------|----------|

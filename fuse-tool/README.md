@@ -1,6 +1,6 @@
-# Fuse Tool -- GB Auto Fuse & Cable Protection
+# Fuse Tool - GB Auto Fuse & Cable Protection
 
-GBA-0002 client web calculator (app v1.3).
+GBA client web calculator (app v1.3).
 
 See the **[project README](../README.md)** for install and run instructions.
 

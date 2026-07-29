@@ -1,4 +1,4 @@
-// GBA-0002 client calculator (column Q sizing)
+// GBA client calculator (column Q sizing)
 
 import type { CableCapacityRow, FuseToolDatabase, MachineRecord } from "../types.js";
 import { parseNumber } from "../parseValue.js";
@@ -172,7 +172,7 @@ export function calculateGba0002(
     !Number.isFinite(inputs.batteryVoltageDuringCrankingV) ||
     !Number.isFinite(inputs.operatingTempC)
   ) {
-    return failResult(inputs, "FAIL", "Invalid input -- check safety factor, battery voltage, and temperature.");
+    return failResult(inputs, "FAIL", "Invalid input: check safety factor, battery voltage, and temperature.");
   }
 
   if (inputs.batteryVoltageDuringCrankingV <= 0) {
@@ -194,7 +194,7 @@ export function calculateGba0002(
     return failResult(inputs, "DATA MISSING", "Machine not found in local database.");
   }
 
-  // v1.1 — battery voltage vs minimum starter voltage (16 V constant).
+  // v1.1: battery voltage vs minimum starter voltage (16 V constant).
   if (inputs.batteryVoltageDuringCrankingV < GBA0002_MIN_STARTER_VOLTAGE_V) {
     return failResult(inputs, "FAIL", MSG_BATTERY_VOLTAGE_LOW, emptyDerived(), manufacturer);
   }
@@ -239,7 +239,7 @@ export function calculateGba0002(
     );
   }
 
-  // v1.1 — measured cranking (T) must not exceed design limit (Q).
+  // v1.1 - measured cranking (T) must not exceed design limit (Q).
   if (measuredCrankingA !== null && measuredCrankingA > designCrankingA) {
     return failResult(
       inputs,
@@ -257,7 +257,7 @@ export function calculateGba0002(
     );
   }
 
-  // v1.1 — measured cranking time (X) must not exceed maximum (5 s).
+  // v1.1: measured cranking time (X) must not exceed maximum (5 s).
   if (measuredCrankingTimeS !== null && measuredCrankingTimeS > GBA0002_CRANKING_TIME_S) {
     return failResult(
       inputs,
@@ -364,7 +364,7 @@ export function calculateGba0002(
       cableThermalWithstandTimeS: round2(thermalTime),
       thermalWithstandPass: true,
       maxAllowableOneWayLengthM: maxLen !== null ? round2(maxLen) : null,
-      operatingTempRangeC: String(machine.operatingTempC ?? "--"),
+      operatingTempRangeC: String(machine.operatingTempC ?? "-"),
       operatingTempPass: true,
       message: formatCableDisplay("no-change", cableType, cableSize),
     };
@@ -383,7 +383,7 @@ export function calculateGba0002(
         cableThermalWithstandTimeS: round2(upThermal),
         thermalWithstandPass: upThermal >= GBA0002_CRANKING_TIME_S,
         maxAllowableOneWayLengthM: maxLen !== null ? round2(maxLen) : null,
-        operatingTempRangeC: String(upgrade.maxConductorTempC ?? "--"),
+        operatingTempRangeC: String(upgrade.maxConductorTempC ?? "-"),
         operatingTempPass: true,
         message: formatCableDisplay("upgraded", upgrade.cableType, upgrade.sizeMm2),
       };

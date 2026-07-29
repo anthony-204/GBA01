@@ -125,17 +125,17 @@ const buttonSecondary: CSSProperties = {
 };
 
 function formatLength(m: number | null | undefined): string {
-  if (m == null) return "--";
+  if (m == null) return "-";
   return `${m} m`;
 }
 
 function formatAmps(a: number | null | undefined): string {
-  if (a == null) return "--";
+  if (a == null) return "-";
   return `${a} A`;
 }
 
 function formatTemp(c: string | number | null | undefined): string {
-  if (c == null || c === "--") return "--";
+  if (c == null || c === "-") return "-";
   const s = String(c);
   if (s.includes("°C")) return s;
   if (/^-?\d+(\.\d+)?$/.test(s.trim())) return `${s} °C`;
@@ -145,13 +145,13 @@ function formatTemp(c: string | number | null | undefined): string {
 function overallHeadline(status: string): string {
   switch (status) {
     case "PASS":
-      return "PASS -- Existing cable and selected fuse satisfy the required checks.";
+      return "PASS: Existing cable and selected fuse satisfy the required checks.";
     case "FAIL":
-      return "FAIL -- Do not proceed without engineering review.";
+      return "FAIL: Do not proceed without engineering review.";
     case "DATA MISSING":
-      return "MISSING DATA -- A recommendation cannot be made until required values are provided.";
+      return "MISSING DATA: A recommendation cannot be made until required values are provided.";
     case "ENGINEERING REVIEW REQUIRED":
-      return "ENGINEERING REVIEW -- The result requires review before use.";
+      return "ENGINEERING REVIEW - The result requires review before use.";
     default:
       return status;
   }
@@ -246,7 +246,7 @@ function buildChecks(result: Gba0002Result): CheckItem[] {
       summary: result.cable.thermalWithstandPass
         ? "The cable can survive the cranking current for the required time."
         : "Cable thermal withstand is below the required cranking time.",
-      details: `Formula: thermal withstand time = (k × S / I)². Computed: ${result.cable.cableThermalWithstandTimeS ?? "--"} s (required ≥ ${d.crankingTimeS} s).`,
+      details: `Formula: thermal withstand time = (k × S / I)². Computed: ${result.cable.cableThermalWithstandTimeS ?? "-"} s (required ≥ ${d.crankingTimeS} s).`,
     },
     {
       id: "continuous",
@@ -298,7 +298,7 @@ function buildChecks(result: Gba0002Result): CheckItem[] {
       summary: withstandOk
         ? "Fuse withstand time is at least the required cranking time."
         : "Fuse withstand time is below the required cranking time.",
-      details: `Fuse withstand: ${result.fuse.withstandTimeS ?? "--"} s. Required: ${d.crankingTimeS} s.`,
+      details: `Fuse withstand: ${result.fuse.withstandTimeS ?? "-"} s. Required: ${d.crankingTimeS} s.`,
     },
     {
       id: "fuse-protects",
@@ -465,7 +465,7 @@ export function Gba0002Calculator() {
       </header>
 
       <section style={cardStyle}>
-        <h2 style={{ margin: "0 0 12px", fontSize: 18 }}>Step 1 -- Enter Machine Details</h2>
+        <h2 style={{ margin: "0 0 12px", fontSize: 18 }}>Step 1: Enter Machine Details</h2>
 
         <label style={{ display: "block", marginBottom: 14, fontWeight: 600 }}>
           Machine make and model
@@ -482,7 +482,7 @@ export function Gba0002Calculator() {
           >
             {machines.map((m) => (
               <option key={m.id} value={m.id}>
-                {m.manufacturer ? `${m.manufacturer} -- ` : ""}
+                {m.manufacturer ? `${m.manufacturer} · ` : ""}
                 {m.id}
               </option>
             ))}
@@ -599,7 +599,7 @@ export function Gba0002Calculator() {
           }}
         >
           <p style={{ margin: "0 0 10px", fontWeight: 800, fontSize: 15, color: "#e65100" }}>
-            Important -- design aid only
+            Important: design aid only
           </p>
           <p style={{ margin: "0 0 12px", fontSize: 14, lineHeight: 1.5, color: "#333" }}>
             {DESIGN_AID_DISCLAIMER}
@@ -682,7 +682,7 @@ export function Gba0002Calculator() {
               </p>
               <p style={{ margin: "8px 0 0", color: "#222", fontSize: 14 }}>{result.summary}</p>
               <p style={{ margin: "8px 0 0", color: "#333", fontSize: 14 }}>
-                <strong>Manufacturer:</strong> {result.manufacturer ?? selectedMachine?.manufacturer ?? "--"}
+                <strong>Manufacturer:</strong> {result.manufacturer ?? selectedMachine?.manufacturer ?? "-"}
                 <br />
                 <strong>Model:</strong> {result.modelId}
               </p>
@@ -713,7 +713,7 @@ export function Gba0002Calculator() {
               <div>
                 <strong>Thermal withstand time:</strong>{" "}
                 {result.cable.cableThermalWithstandTimeS == null
-                  ? "--"
+                  ? "-"
                   : `${result.cable.cableThermalWithstandTimeS} s`}
               </div>
             </div>
@@ -721,7 +721,7 @@ export function Gba0002Calculator() {
               <ul style={{ margin: 0, paddingLeft: 18 }}>
                 <li>
                   Thermal withstand: {result.cable.thermalWithstandPass ? "pass" : "fail"} (
-                  {result.cable.cableThermalWithstandTimeS ?? "--"} s)
+                  {result.cable.cableThermalWithstandTimeS ?? "-"} s)
                 </li>
                 <li>
                   Continuous current vs alternator:{" "}
@@ -746,24 +746,24 @@ export function Gba0002Calculator() {
                 <strong>Suggested fuse size:</strong> {formatAmps(result.fuse.suggestedFuseSizeA)}
               </div>
               <div>
-                <strong>Fuse make/model:</strong> {result.fuse.fuseMakeModel ?? "--"}
+                <strong>Fuse make/model:</strong> {result.fuse.fuseMakeModel ?? "-"}
               </div>
               <div>
-                <strong>Part number:</strong> {result.fuse.fusePartNumber ?? "--"}
+                <strong>Part number:</strong> {result.fuse.fusePartNumber ?? "-"}
               </div>
               <div>
                 <strong>Operating temperature:</strong> {formatTemp(result.fuse.fuseOperatingTempC)}
               </div>
               <div>
                 <strong>Withstand time:</strong>{" "}
-                {result.fuse.withstandTimeS == null ? "--" : `${result.fuse.withstandTimeS} s`}
+                {result.fuse.withstandTimeS == null ? "-" : `${result.fuse.withstandTimeS} s`}
               </div>
             </div>
             <ExplanationDropdown summary="Reasoning">
               <ul style={{ margin: 0, paddingLeft: 18 }}>
                 <li>Required fuse current: {formatAmps(result.derived.requiredFuseCurrentA)}</li>
                 <li>
-                  Fuse withstand vs required cranking time: {result.fuse.withstandTimeS ?? "--"} s /{" "}
+                  Fuse withstand vs required cranking time: {result.fuse.withstandTimeS ?? "-"} s /{" "}
                   {result.derived.crankingTimeS} s
                 </li>
                 <li>
@@ -815,18 +815,18 @@ export function Gba0002Calculator() {
                   border: "1px solid #ddd",
                 }}
               >
-                {`Design cranking current Q (A): ${result.derived.starterCrankingCurrentA ?? "--"}
-Database column Q (A): ${result.derived.databasePeakCurrentCutoffA ?? "--"}
+                {`Design cranking current Q (A): ${result.derived.starterCrankingCurrentA ?? "-"}
+Database column Q (A): ${result.derived.databasePeakCurrentCutoffA ?? "-"}
 Q overridden manually: ${result.derived.starterCrankingCurrentOverridden ? "yes" : "no"}
-Measured cranking current T (A): ${result.derived.measuredStarterCrankingA ?? "--"}
-Measured cranking time X (s): ${result.derived.measuredCrankingTimeS ?? "--"}
-Alternator continuous current (A): ${result.derived.alternatorContinuousA ?? "--"}
-Cable type: ${result.derived.cableTypePresent ?? "--"}
-Cable size (mm²): ${result.derived.existingCableSizeMm2 ?? "--"}
-K-factor: ${result.derived.kFactor ?? "--"}
-Cable resistance (Ω/km): ${result.derived.cableResistanceOhmPerKm ?? "--"}
+Measured cranking current T (A): ${result.derived.measuredStarterCrankingA ?? "-"}
+Measured cranking time X (s): ${result.derived.measuredCrankingTimeS ?? "-"}
+Alternator continuous current (A): ${result.derived.alternatorContinuousA ?? "-"}
+Cable type: ${result.derived.cableTypePresent ?? "-"}
+Cable size (mm²): ${result.derived.existingCableSizeMm2 ?? "-"}
+K-factor: ${result.derived.kFactor ?? "-"}
+Cable resistance (Ω/km): ${result.derived.cableResistanceOhmPerKm ?? "-"}
 Max allowable voltage drop (V): ${result.derived.maxAllowableVoltageDropV}
-Required fuse current (A): ${result.derived.requiredFuseCurrentA ?? "--"}`}
+Required fuse current (A): ${result.derived.requiredFuseCurrentA ?? "-"}`}
               </pre>
             </ExplanationDropdown>
           </section>

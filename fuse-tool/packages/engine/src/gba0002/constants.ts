@@ -1,4 +1,4 @@
-// GBA-0002 client constants (PDF spec)
+// GBA client constants (PDF spec)
 
 export const GBA0002_MIN_STARTER_VOLTAGE_V = 16;
 export const GBA0002_CRANKING_TIME_S = 5;

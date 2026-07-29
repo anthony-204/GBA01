@@ -111,7 +111,7 @@ export interface RecommendationInputs {
   voltageDropLimitPercent?: number;
 }
 
-/** Manual entry mode — Version 2 (GBA-0002 PDF parameters) */
+/** Manual entry mode, Version 2 (GBA PDF parameters) */
 export interface ManualEntryInput {
   machineLabel?: string;
   safetyFactorPercent: number;
@@ -137,7 +137,7 @@ export type CalculationRequest =
   | { mode: "library"; modelId: string; safetyFactorPercent?: number; voltageDropLimitPercent?: number }
   | { mode: "manual"; inputs: ManualEntryInput };
 
-/** PDF / GBA-0002 required simple web app outputs */
+/** PDF / GBA required simple web app outputs */
 export interface PdfCableFuseOutputs {
   cableType: string | null;
   cableSizeMm2: number | null;

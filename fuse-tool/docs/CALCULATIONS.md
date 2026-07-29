@@ -1,8 +1,8 @@
-# GBA-0002 Calculation Reference
+# GBA Calculation Reference
 
 **App version:** 1.3  
 **Engine:** `packages/engine/src/gba0002/calculate.ts`  
-**Spec:** GBA-0002 Vehicle database (2).pdf
+**Spec:** GBA Vehicle database (2).pdf
 
 ## User inputs
 

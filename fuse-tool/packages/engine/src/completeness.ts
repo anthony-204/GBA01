@@ -9,7 +9,7 @@ import type { MachineRecord } from "./types.js";
 import { parseNumber } from "./parseValue.js";
 import { labelForField } from "./fieldLabels.js";
 
-/** Fields required before running full cable + fuse recommendation (GBA-0002 / PDF). */
+/** Fields required before running full cable + fuse recommendation (GBA / PDF). */
 export const REQUIRED_FIELDS = [
   "peakCrankingCurrentA",
   "alternatorContinuousA",
